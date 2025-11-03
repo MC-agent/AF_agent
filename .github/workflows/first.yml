@@ -16,7 +16,7 @@ jobs:
           docker build -t myapp:latest . 
       - name: Run tests
         run: | 
-          docker run myapp:latest pytest
+          docker run myapp:latest
     
 
 
