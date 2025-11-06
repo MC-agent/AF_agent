@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
+  IMAGE_NAME: af_agent
   
 jobs: 
   build:
