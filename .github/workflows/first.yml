@@ -46,11 +46,29 @@ jobs:
             BUILD_DATE=${{ steps.meta.outputs.created }} 
 
       - name: Run tests inside container
-        run: |
+        uses: |
           docker run --rm \
             -e CI=true \
             ${{ env.IMAGE_NAME }}:test \
             bash -lc "${TEST_CMD}"
+
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push (main only)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .
+          file: ./Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
        
 
