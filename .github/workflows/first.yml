@@ -8,7 +8,7 @@ on:
       - main
 
 env:
-  IMAGE_NAME: {{ github.repository }} 
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
   
 jobs: 
   build:
@@ -39,7 +39,7 @@ jobs:
         with:
           load: true
           context: .
-          file: ./dockerfile
+          file: ./Dockerfile
           tags: ${{ env.IMAGE_NAME }}:test
           build-args: |
             GIT_SHA=${{ github.sha }}
