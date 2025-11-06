@@ -10,13 +10,44 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        
       - name: docker build
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker metadata
+        id: meata
+        uses: docker/metadata-action@v5
+        with:
+          images:  ${{ env.IMAGE_NAME }}
+          tags: | 
+            type=raw,value=sha-${{ github.sha }}
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build (for tests)
+        uses: docker/build-push-action@v6
+        with:
+          load: true
+          context: .
+          file: ./dockerfile
+          tags: ${{ env.IMAGE_NAME }}:test
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ steps.meta.outputs.created }} 
+
+      - name: Run tests inside container
         run: |
-          docker build -t myapp:latest . 
-      - name: Run tests
-        run: | 
-          docker run myapp:latest
-    
+          docker run --rm \
+            -e CI=true \
+            ${{ env.IMAGE_NAME }}:test \
+            bash -lc "${TEST_CMD}"
+
+       
 
 
