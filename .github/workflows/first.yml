@@ -9,6 +9,7 @@ on:
 
 env:
   IMAGE_NAME: af_agent
+  TEST_CMD: pytest -q   
   
 jobs: 
   build:
