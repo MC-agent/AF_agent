@@ -100,12 +100,12 @@ jobs:
             set -e
             export IMAGE_SHA="${GITHUB_SHA}"
             export GH_OWNER="${{ github.repository_owner }}"
-            export GHCR_TOKEN='${{ secrets.GHCR_READ_TOKEN }}'
-        
-            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GH_OWNER" --password-stdin
-      
+    
             mkdir -p /opt/af-agent
             cd /opt/af-agent
+
+            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" docker pull
+            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" docker run -it -d --remove-orphans
 
   
          
