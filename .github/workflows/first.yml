@@ -10,6 +10,10 @@ on:
 env:
   IMAGE_NAME: af_agent
   TEST_CMD: pytest -q   
+
+permissions:
+  contents: read
+  packages: write
   
 jobs: 
   build:
