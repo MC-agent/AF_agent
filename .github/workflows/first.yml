@@ -75,39 +75,42 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-deploy:
-  name: Deploy to EC2
-  needs: build
-  if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-  runs-on: ubuntu-latest
-  with:
-    host: ${{ secrets.SSH_HOST }}
-    username: ${{ secrets.SSH_USER }}
-    key: ${{ secrets.SSH_PRIVATE_KEY }} 
-    port: ${{ secrets.SSH_PORT }}
-    envs: GITHUB_SHA
-    script_stop: true
-    script: |
-      set -e
-      export IMAGE_SHA="${GITHUB_SHA}"
-      export GH_OWNER="${{ github.repository_owner }}"
-      export GHCR_TOKEN='${{ secrets.GHCR_READ_TOKEN }}'
+  deploy:
+    name: Deploy to EC2
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }} 
+          port: ${{ secrets.SSH_PORT }}
+          envs: GITHUB_SHA
+          script_stop: true
+          script: |
+            set -e
+            export IMAGE_SHA="${GITHUB_SHA}"
+            export GH_OWNER="${{ github.repository_owner }}"
+            export GHCR_TOKEN='${{ secrets.GHCR_READ_TOKEN }}'
+            
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GH_OWNER" --password-stdin
       
-      echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GH_OWNER" --password-stdin
-
-      mkdir -p /opt/af-agent
-      cd /opt/af-agent
-
-      GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" \
-      docker compose pull
-
-      GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" \
-      docker compose up -d --remove-orphans
-
-      sleep 5
-      curl -fsS http://localhost:8080/healthz || (docker compose logs --no-color --tail=200 && exit 1)
-        
-
-       
-
-
+            mkdir -p /opt/af-agent
+            cd /opt/af-agent
+      
+            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" \
+            docker compose pull
+      
+            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" \
+            docker compose up -d --remove-orphans
+      
+            sleep 5
+            curl -fsS http://localhost:8080/healthz || (docker compose logs --no-color --tail=200 && exit 1)
+              
+  
+         
+  
+  
