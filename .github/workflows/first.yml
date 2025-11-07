@@ -102,26 +102,27 @@ jobs:
             export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
 
-
             sudo apt-get update
             sudo apt-get install -y ca-certificates curl gnupg lsb-release
             
             sudo install -m 0755 -d /etc/apt/keyrings
+            
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-              sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
             
             echo \
-              "deb [arch=$(dpkg --print-architecture) \
-              signed-by=/etc/apt/keyrings/docker.gpg] \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
               https://download.docker.com/linux/ubuntu \
               $(lsb_release -cs) stable" | \
               sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
             
+            sudo apt-get update
             sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
             
+            sudo systemctl enable --now docker
             sudo usermod -aG docker $USER
-            newgrp docker
-            sudo systemctl enable docker
+
+         
 
             if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
             echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
@@ -136,9 +137,9 @@ jobs:
   
             cd /opt/af-agent
 
-            docker pull "$IMAGE"
+            sudo docker pull "$IMAGE"
 
-            docker run -d \
+            sudo docker run -d \
             --name af_agent_app \
             -p 8080:8080 \
             --restart unless-stopped \
