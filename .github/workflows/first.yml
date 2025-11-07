@@ -100,12 +100,6 @@ jobs:
             mkdir -p /opt/af-agent
             cd /opt/af-agent
       
-            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" \
-            docker compose pull
-      
-            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" \
-            docker compose up -d --remove-orphans
-      
             sleep 5
             curl -fsS http://localhost:8080/healthz || (docker compose logs --no-color --tail=200 && exit 1)
               
