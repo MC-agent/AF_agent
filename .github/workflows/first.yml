@@ -137,9 +137,9 @@ jobs:
   
             cd /opt/af-agent
 
-            sudo docker pull "$IMAGE"
+            docker pull "$IMAGE"
 
-            sudo docker run -d \
+            docker run -d \
             --name af_agent_app \
             -p 8080:8080 \
             --restart unless-stopped \
