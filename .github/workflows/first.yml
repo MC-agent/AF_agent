@@ -80,7 +80,14 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    
     steps:
+      - name: Preflight secrets check
+        run: |
+          test -n "${{ secrets.SSH_HOST }}" || { echo "SSH_HOST is missing"; exit 1; }
+          test -n "${{ secrets.SSH_USER }}" || { echo "SSH_USER is missing"; exit 1; }
+          test -n "${{ secrets.SSH_PRIVATE_KEY }}" || { echo "SSH_PRIVATE_KEY is missing"; exit 1; }
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
