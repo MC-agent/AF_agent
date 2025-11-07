@@ -100,14 +100,19 @@ jobs:
             set -e
             export IMAGE_SHA="${GITHUB_SHA}"
             export GH_OWNER="${{ github.repository_owner }}"
+            export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
             sudo mkdir -p /opt/af-agent
             sudo chown -R ubuntu:ubuntu /opt/af-agent
   
             cd /opt/af-agent
 
-            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" docker pull
-            GH_OWNER="$GH_OWNER" IMAGE_SHA="$IMAGE_SHA" docker run -it -d --remove-orphans
+            docker pull "$IMAGE"
 
+            docker run -d \
+            --name af_agent_app \
+            -p 8080:8080 \
+            --restart unless-stopped \
+            "$IMAGE"
   
          
   
