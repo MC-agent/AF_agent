@@ -102,11 +102,6 @@ jobs:
             export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
 
-            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
-            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            else
-            echo "GHCR_USERNAME/GHCR_READ_TOKEN not set. Assuming package is PUBLIC."
-            fi
 
             sudo apt-get update
             sudo apt-get install -y ca-certificates curl gnupg lsb-release
@@ -128,9 +123,16 @@ jobs:
             newgrp docker
             sudo systemctl enable docker
 
+            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
+            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            else
+            echo "GHCR_USERNAME/GHCR_READ_TOKEN not set. Assuming package is PUBLIC."
+            fi
+
             
             sudo mkdir -p /opt/af-agent
             sudo chown -R ubuntu:ubuntu /opt/af-agent
+            
   
             cd /opt/af-agent
 
