@@ -99,7 +99,7 @@ jobs:
           script: |
             set -e
             export IMAGE_SHA="${GITHUB_SHA}"
-            export GH_OWNER="${{ github.repository_owner }}"
+            export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
             sudo mkdir -p /opt/af-agent
             sudo chown -R ubuntu:ubuntu /opt/af-agent
