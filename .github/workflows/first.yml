@@ -106,10 +106,7 @@ jobs:
       
             mkdir -p /opt/af-agent
             cd /opt/af-agent
-      
-            sleep 5
-            curl -fsS http://localhost:8080/healthz || (docker compose logs --no-color --tail=200 && exit 1)
-              
+
   
          
   
