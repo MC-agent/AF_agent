@@ -141,6 +141,8 @@ jobs:
 
             docker rm -f "$IMAGE" 2>/dev/null || true
             
+            docker stop af_agent
+            
             docker image prune -f
             
             docker run -d \
