@@ -145,10 +145,9 @@ jobs:
 
             docker image prune -f
             
-            docker run -d \
+            docker run -it -d \
             --name af_agent \
             -p 8080:8080 \
-            --restart unless-stopped \
             "$IMAGE"
   
          
