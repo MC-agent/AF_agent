@@ -140,7 +140,7 @@ jobs:
             docker pull "$IMAGE"
 
             docker run -d \
-            --name af_agent_app \
+            --name "$IMAGE" \
             -p 8080:8080 \
             --restart unless-stopped \
             "$IMAGE"
