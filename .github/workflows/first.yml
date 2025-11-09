@@ -139,8 +139,12 @@ jobs:
 
             docker pull "$IMAGE"
 
+            docker rm -f "$IMAGE" 2>/dev/null || true
+            
+            docker image prune -f
+            
             docker run -d \
-            --name "$IMAGE" \
+            --name af_agent \
             -p 8080:8080 \
             --restart unless-stopped \
             "$IMAGE"
