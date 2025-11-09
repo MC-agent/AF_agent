@@ -45,7 +45,7 @@ jobs:
           load: true
           context: .
           file: ./Dockerfile
-          tags: ${{ env.IMAGE_NAME }}:test
+          tags: ${{ env.IMAGE_NAME }}:test2
           build-args: |
             GIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ steps.meta.outputs.created }} 
