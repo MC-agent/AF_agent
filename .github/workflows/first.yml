@@ -137,12 +137,12 @@ jobs:
   
             cd /opt/af-agent
 
+            docker stop af_agent 2>/dev/null || true
+            
+            docker rm af_agent 2>/dev/null || true
+            
             docker pull "$IMAGE"
 
-            docker rm -f "$IMAGE" 2>/dev/null || true
-            
-            docker stop af_agent
-            
             docker image prune -f
             
             docker run -d \
