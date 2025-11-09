@@ -45,7 +45,7 @@ jobs:
           load: true
           context: .
           file: ./Dockerfile
-          tags: ${{ env.IMAGE_NAME }}:test
+          tags: ${{ env.IMAGE_NAME }}:test2
           build-args: |
             GIT_SHA=${{ github.sha }}
             BUILD_DATE=${{ steps.meta.outputs.created }} 
@@ -139,8 +139,12 @@ jobs:
 
             docker pull "$IMAGE"
 
+            docker rm -f "$IMAGE" 2>/dev/null || true
+            
+            docker image prune -f
+            
             docker run -d \
-            --name af_agent_app \
+            --name af_agent \
             -p 8080:8080 \
             --restart unless-stopped \
             "$IMAGE"
