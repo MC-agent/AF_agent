@@ -1,8 +1,7 @@
 FROM python:3.12-slim
 
-WORKDIR app
-
-RUN pip install pytest
+WORKDIR /app
 
 COPY . .
 
+RUN pip install -r requirements.txt
