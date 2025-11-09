@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR app
 
-RUN pip install pytest
+RUN pip install pytest langchain
 
 COPY . .
 
