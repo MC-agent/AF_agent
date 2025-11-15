@@ -1,0 +1,604 @@
+{
+  "서울": [
+    {
+      "name": "서울 시티 호텔",
+      "type": "호텔",
+      "price": 120000,
+      "rating": 4.5,
+      "amenities": ["무료 WiFi", "조식 포함", "피트니스센터", "주차장"],
+      "address": "서울시 강남구",
+      "parking": {
+        "available": true,
+        "type": "자체 주차장",
+        "capacity": "50대",
+        "fee": "무료",
+        "detail": "지하 주차장 완비, 선착순 이용"
+      },
+      "checkin_checkout": {
+        "checkin": "15:00",
+        "checkout": "11:00",
+        "early_checkin": "가능 (추가 비용)",
+        "late_checkout": "가능 (추가 비용)"
+      },
+      "services": [
+        "24시간 프론트 데스크",
+        "컨시어지 서비스",
+        "룸서비스",
+        "세탁 서비스",
+        "환전 서비스",
+        "짐 보관 서비스"
+      ],
+      "reviews": [
+        {
+          "user": "김**",
+          "rating": 5,
+          "date": "2024-10-15",
+          "comment": "강남역 근처라 교통이 정말 편리했어요. 객실도 깨끗하고 직원분들 친절하셨습니다. 조식 메뉴도 다양해서 좋았어요."
+        },
+        {
+          "user": "이**",
+          "rating": 4,
+          "date": "2024-10-10",
+          "comment": "위치가 최고예요. 주차장도 넓고 편의시설도 잘 되어있습니다. 다만 주말이라 조식 시간대가 좀 붐볐어요."
+        },
+        {
+          "user": "박**",
+          "rating": 5,
+          "date": "2024-10-05",
+          "comment": "출장으로 자주 이용하는데 항상 만족스럽습니다. 피트니스센터도 시설이 좋아요."
+        }
+      ],
+      "special_notes": [
+        "반려동물 동반 불가",
+        "전 객실 금연",
+        "어린이 12세 미만 무료 (추가 침대 불포함)"
+      ],
+      "contact": {
+        "phone": "02-1234-5678",
+        "email": "info@seoulcityhotel.com"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "강남 맛집 거리", "distance_km": 0.3, "walk_time": 4, "drive_time": 2},
+          {"name": "코엑스 푸드코트", "distance_km": 1.2, "walk_time": 15, "drive_time": 5}
+        ],
+        "attractions": [
+          {"name": "코엑스몰", "distance_km": 1.5, "walk_time": 18, "drive_time": 6},
+          {"name": "봉은사", "distance_km": 2.0, "walk_time": 25, "drive_time": 8},
+          {"name": "선릉", "distance_km": 1.8, "walk_time": 22, "drive_time": 7}
+        ],
+        "shopping": [
+          {"name": "강남역 지하쇼핑몰", "distance_km": 0.5, "walk_time": 6, "drive_time": 3}
+        ]
+      },
+      "transportation": {
+        "subway": [
+          {"line": "2호선", "station": "강남역", "walk_time": 5, "distance_km": 0.4},
+          {"line": "신분당선", "station": "강남역", "walk_time": 5, "distance_km": 0.4}
+        ],
+        "bus_stops": [
+          {"name": "강남역 버스정류장", "walk_time": 3, "distance_km": 0.2}
+        ],
+        "airport": {
+          "인천국제공항": {"distance_km": 60, "drive_time": 70, "taxi_time": 70, "public_transport_time": 90},
+          "김포공항": {"distance_km": 25, "drive_time": 35, "taxi_time": 35, "public_transport_time": 50}
+        }
+      }
+    },
+    {
+      "name": "명동 게스트하우스",
+      "type": "게스트하우스",
+      "price": 45000,
+      "rating": 4.2,
+      "amenities": ["무료 WiFi", "공용 주방", "세탁실"],
+      "address": "서울시 중구 명동",
+      "parking": {
+        "available": false,
+        "type": "주차 불가",
+        "detail": "근처 공영 주차장 이용 가능 (도보 5분)"
+      },
+      "checkin_checkout": {
+        "checkin": "14:00",
+        "checkout": "11:00",
+        "early_checkin": "가능 (객실 상황에 따라)",
+        "late_checkout": "불가"
+      },
+      "services": [
+        "셀프 체크인",
+        "여행 정보 제공",
+        "공용 주방 이용",
+        "세탁기 무료 이용"
+      ],
+      "reviews": [
+        {
+          "user": "최**",
+          "rating": 4,
+          "date": "2024-10-12",
+          "comment": "명동 한복판이라 쇼핑하기 너무 좋았어요. 가성비 최고! 다만 주차는 안 되니 참고하세요."
+        },
+        {
+          "user": "정**",
+          "rating": 4,
+          "date": "2024-10-08",
+          "comment": "혼자 여행하기 좋은 곳이에요. 깨끗하고 다른 여행자들과 교류할 수 있어서 좋았습니다."
+        },
+        {
+          "user": "강**",
+          "rating": 5,
+          "date": "2024-10-01",
+          "comment": "주인분이 정말 친절하세요. 주변 맛집도 추천해주시고 명동 위치가 환상적이에요."
+        }
+      ],
+      "special_notes": [
+        "공용 공간 사용 시 다른 투숙객 배려 필수",
+        "조용한 시간 (22:00-08:00)",
+        "개인 욕실 제공 (일부 객실은 공용 욕실)"
+      ],
+      "contact": {
+        "phone": "02-2345-6789",
+        "email": "myeongdong.gh@gmail.com"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "명동 맛집 거리", "distance_km": 0.1, "walk_time": 2, "drive_time": 1},
+          {"name": "남대문 먹자골목", "distance_km": 0.8, "walk_time": 10, "drive_time": 5}
+        ],
+        "attractions": [
+          {"name": "명동성당", "distance_km": 0.3, "walk_time": 4, "drive_time": 2},
+          {"name": "남산타워", "distance_km": 1.5, "walk_time": 20, "drive_time": 10},
+          {"name": "덕수궁", "distance_km": 1.2, "walk_time": 15, "drive_time": 8}
+        ],
+        "shopping": [
+          {"name": "명동쇼핑거리", "distance_km": 0.05, "walk_time": 1, "drive_time": 1},
+          {"name": "롯데백화점", "distance_km": 0.4, "walk_time": 5, "drive_time": 3}
+        ]
+      },
+      "transportation": {
+        "subway": [
+          {"line": "4호선", "station": "명동역", "walk_time": 2, "distance_km": 0.15}
+        ],
+        "bus_stops": [
+          {"name": "명동역 버스정류장", "walk_time": 2, "distance_km": 0.15}
+        ],
+        "airport": {
+          "인천국제공항": {"distance_km": 65, "drive_time": 75, "taxi_time": 75, "public_transport_time": 100},
+          "김포공항": {"distance_km": 20, "drive_time": 30, "taxi_time": 30, "public_transport_time": 45}
+        }
+      }
+    },
+    {
+      "name": "한강뷰 펜션",
+      "type": "펜션",
+      "price": 85000,
+      "rating": 4.7,
+      "amenities": ["한강 전망", "바비큐 시설", "주차장", "취사 가능"],
+      "address": "서울시 영등포구",
+      "parking": {
+        "available": true,
+        "type": "전용 주차장",
+        "capacity": "객실당 1대",
+        "fee": "무료",
+        "detail": "각 객실마다 전용 주차 공간 배정"
+      },
+      "checkin_checkout": {
+        "checkin": "15:00",
+        "checkout": "11:00",
+        "early_checkin": "가능 (14:00부터)",
+        "late_checkout": "가능 (12:00까지, 협의 가능)"
+      },
+      "services": [
+        "바비큐 그릴 대여",
+        "취사 도구 완비",
+        "캠프파이어 시설",
+        "자전거 대여",
+        "한강 공원 접근 용이"
+      ],
+      "reviews": [
+        {
+          "user": "윤**",
+          "rating": 5,
+          "date": "2024-10-14",
+          "comment": "한강뷰가 정말 끝내줍니다! 바비큐 시설도 좋고 가족들과 좋은 시간 보냈어요."
+        },
+        {
+          "user": "송**",
+          "rating": 5,
+          "date": "2024-10-09",
+          "comment": "취사 시설이 완벽해서 직접 요리해 먹기 좋아요. 한강 자전거 타기도 최고!"
+        },
+        {
+          "user": "한**",
+          "rating": 4,
+          "date": "2024-10-03",
+          "comment": "조용하고 깨끗해요. 주차도 편하고 한강이 바로 앞이라 산책하기 좋습니다."
+        }
+      ],
+      "special_notes": [
+        "반려동물 동반 가능 (소형견만)",
+        "바비큐 이용 시 사전 예약 필수",
+        "최대 인원 6명",
+        "취사 도구 및 식기 제공"
+      ],
+      "contact": {
+        "phone": "02-3456-7890",
+        "email": "hangang.pension@naver.com"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "여의도 맛집 거리", "distance_km": 1.5, "walk_time": 18, "drive_time": 8},
+          {"name": "한강 카페거리", "distance_km": 0.5, "walk_time": 6, "drive_time": 3}
+        ],
+        "attractions": [
+          {"name": "여의도 한강공원", "distance_km": 0.2, "walk_time": 3, "drive_time": 1},
+          {"name": "63빌딩", "distance_km": 2.0, "walk_time": 25, "drive_time": 10},
+          {"name": "국회의사당", "distance_km": 2.5, "walk_time": 30, "drive_time": 12}
+        ],
+        "shopping": [
+          {"name": "IFC몰", "distance_km": 2.0, "walk_time": 25, "drive_time": 10}
+        ]
+      },
+      "transportation": {
+        "subway": [
+          {"line": "5호선", "station": "여의나루역", "walk_time": 10, "distance_km": 0.8},
+          {"line": "9호선", "station": "샛강역", "walk_time": 12, "distance_km": 1.0}
+        ],
+        "bus_stops": [
+          {"name": "한강공원 버스정류장", "walk_time": 5, "distance_km": 0.4}
+        ],
+        "airport": {
+          "인천국제공항": {"distance_km": 55, "drive_time": 65, "taxi_time": 65, "public_transport_time": 85},
+          "김포공항": {"distance_km": 15, "drive_time": 25, "taxi_time": 25, "public_transport_time": 40}
+        }
+      }
+    }
+  ],
+  "부산": [
+    {
+      "name": "해운대 비치 리조트",
+      "type": "리조트",
+      "price": 150000,
+      "rating": 4.8,
+      "amenities": ["오션뷰", "수영장", "스파", "레스토랑"],
+      "address": "부산시 해운대구",
+      "parking": {
+        "available": true,
+        "type": "발렛 주차",
+        "capacity": "100대 이상",
+        "fee": "1일 10,000원",
+        "detail": "발렛 파킹 서비스 제공, 실내 주차장"
+      },
+      "checkin_checkout": {
+        "checkin": "15:00",
+        "checkout": "11:00",
+        "early_checkin": "가능 (추가 비용 30,000원)",
+        "late_checkout": "가능 (추가 비용 30,000원)"
+      },
+      "services": [
+        "24시간 컨시어지",
+        "실내외 수영장",
+        "프리미엄 스파",
+        "레스토랑 3곳 (한식, 양식, 일식)",
+        "비치 타월 및 용품 대여",
+        "키즈 클럽",
+        "피트니스 센터"
+      ],
+      "reviews": [
+        {
+          "user": "임**",
+          "rating": 5,
+          "date": "2024-10-16",
+          "comment": "신혼여행으로 다녀왔는데 완벽했어요. 오션뷰 객실 강추! 스파도 정말 좋았습니다."
+        },
+        {
+          "user": "조**",
+          "rating": 5,
+          "date": "2024-10-11",
+          "comment": "해운대 해변이 바로 앞이라 위치가 최고예요. 수영장도 깨끗하고 조식 뷔페 훌륭합니다."
+        },
+        {
+          "user": "문**",
+          "rating": 4,
+          "date": "2024-10-06",
+          "comment": "가족 여행으로 좋아요. 키즈 클럽 덕분에 아이들이 즐겁게 놀았어요. 다만 주차비가 조금 비싼 편이에요."
+        }
+      ],
+      "special_notes": [
+        "해변 직접 접근 가능",
+        "실내외 수영장 연중 운영",
+        "반려동물 동반 불가",
+        "성수기 최소 2박 이상 예약 필수"
+      ],
+      "contact": {
+        "phone": "051-1234-5678",
+        "email": "info@haeundae-resort.com"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "해운대 횟집 거리", "distance_km": 0.2, "walk_time": 3, "drive_time": 2},
+          {"name": "더베이101 레스토랑", "distance_km": 0.5, "walk_time": 6, "drive_time": 3}
+        ],
+        "attractions": [
+          {"name": "해운대 해수욕장", "distance_km": 0.05, "walk_time": 1, "drive_time": 1},
+          {"name": "동백섬", "distance_km": 1.0, "walk_time": 12, "drive_time": 5},
+          {"name": "아쿠아리움", "distance_km": 0.8, "walk_time": 10, "drive_time": 4},
+          {"name": "달맞이 고개", "distance_km": 2.5, "walk_time": 30, "drive_time": 10}
+        ],
+        "shopping": [
+          {"name": "센텀시티", "distance_km": 3.0, "walk_time": 35, "drive_time": 12}
+        ]
+      },
+      "transportation": {
+        "subway": [
+          {"line": "2호선", "station": "해운대역", "walk_time": 8, "distance_km": 0.6}
+        ],
+        "bus_stops": [
+          {"name": "해운대 해수욕장 정류장", "walk_time": 2, "distance_km": 0.1}
+        ],
+        "airport": {
+          "김해국제공항": {"distance_km": 25, "drive_time": 35, "taxi_time": 35, "public_transport_time": 60}
+        }
+      }
+    },
+    {
+      "name": "광안리 호텔",
+      "type": "호텔",
+      "price": 95000,
+      "rating": 4.3,
+      "amenities": ["무료 WiFi", "조식 포함", "주차장"],
+      "address": "부산시 수영구 광안리",
+      "parking": {
+        "available": true,
+        "type": "자체 주차장",
+        "capacity": "30대",
+        "fee": "무료",
+        "detail": "지하 주차장, 선착순 배정 (만차 시 인근 유료 주차장 안내)"
+      },
+      "checkin_checkout": {
+        "checkin": "14:00",
+        "checkout": "11:00",
+        "early_checkin": "가능 (객실 상황에 따라)",
+        "late_checkout": "가능 (협의 필요)"
+      },
+      "services": [
+        "조식 뷔페 (07:00-10:00)",
+        "프론트 데스크 (06:00-23:00)",
+        "짐 보관 서비스",
+        "관광 안내",
+        "세탁 서비스"
+      ],
+      "reviews": [
+        {
+          "user": "배**",
+          "rating": 4,
+          "date": "2024-10-13",
+          "comment": "광안대교 야경 보러 가기 정말 좋아요. 해변 도보 3분! 조식도 맛있어요."
+        },
+        {
+          "user": "서**",
+          "rating": 4,
+          "date": "2024-10-07",
+          "comment": "가성비 좋은 호텔이에요. 광안리 해수욕장 바로 근처라 산책하기 좋습니다."
+        },
+        {
+          "user": "오**",
+          "rating": 5,
+          "date": "2024-10-02",
+          "comment": "직원분들 친절하고 객실 깨끗해요. 주차도 무료라 편했습니다."
+        }
+      ],
+      "special_notes": [
+        "광안리 해변 도보 3분",
+        "광안대교 야경 명소 인근",
+        "주변 맛집 다수",
+        "반려동물 동반 불가"
+      ],
+      "contact": {
+        "phone": "051-2345-6789",
+        "email": "gwangalli.hotel@daum.net"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "광안리 횟집 거리", "distance_km": 0.15, "walk_time": 2, "drive_time": 1},
+          {"name": "광안리 카페거리", "distance_km": 0.2, "walk_time": 3, "drive_time": 2}
+        ],
+        "attractions": [
+          {"name": "광안리 해수욕장", "distance_km": 0.1, "walk_time": 2, "drive_time": 1},
+          {"name": "광안대교 야경 포인트", "distance_km": 0.3, "walk_time": 4, "drive_time": 2},
+          {"name": "수영강", "distance_km": 0.8, "walk_time": 10, "drive_time": 5}
+        ],
+        "shopping": [
+          {"name": "광안리 쇼핑몰", "distance_km": 0.2, "walk_time": 3, "drive_time": 2}
+        ]
+      },
+      "transportation": {
+        "subway": [
+          {"line": "2호선", "station": "금련산역", "walk_time": 7, "distance_km": 0.55},
+          {"line": "2호선", "station": "광안역", "walk_time": 10, "distance_km": 0.8}
+        ],
+        "bus_stops": [
+          {"name": "광안리 해수욕장 정류장", "walk_time": 3, "distance_km": 0.2}
+        ],
+        "airport": {
+          "김해국제공항": {"distance_km": 20, "drive_time": 30, "taxi_time": 30, "public_transport_time": 50}
+        }
+      }
+    }
+  ],
+  "제주도": [
+    {
+      "name": "제주 오션 리조트",
+      "type": "리조트",
+      "price": 180000,
+      "rating": 4.9,
+      "amenities": ["오션뷰", "수영장", "스파", "골프장", "레스토랑"],
+      "address": "제주시 구좌읍",
+      "parking": {
+        "available": true,
+        "type": "전용 주차장",
+        "capacity": "200대 이상",
+        "fee": "무료",
+        "detail": "넓은 야외 주차장 및 지하 주차장 완비, 전기차 충전소 5대 운영"
+      },
+      "checkin_checkout": {
+        "checkin": "15:00",
+        "checkout": "12:00",
+        "early_checkin": "가능 (추가 비용 50,000원)",
+        "late_checkout": "가능 (추가 비용 50,000원)"
+      },
+      "services": [
+        "24시간 컨시어지",
+        "프라이빗 비치",
+        "18홀 골프장",
+        "실내외 수영장 및 키즈풀",
+        "프리미엄 스파 & 사우나",
+        "레스토랑 4곳 (한식, 양식, 일식, 중식)",
+        "키즈 클럽 및 놀이방",
+        "렌터카 예약 대행",
+        "투어 프로그램"
+      ],
+      "reviews": [
+        {
+          "user": "권**",
+          "rating": 5,
+          "date": "2024-10-17",
+          "comment": "제주 최고의 리조트! 시설이 정말 훌륭하고 오션뷰가 감동적이에요. 골프장도 멋있어요."
+        },
+        {
+          "user": "황**",
+          "rating": 5,
+          "date": "2024-10-12",
+          "comment": "가족 여행으로 완벽했어요. 키즈 클럽에서 아이들이 즐겁게 놀고 어른들은 스파에서 힐링했어요."
+        },
+        {
+          "user": "안**",
+          "rating": 5,
+          "date": "2024-10-08",
+          "comment": "프라이빗 비치가 정말 좋아요. 조용하고 깨끗해서 여유롭게 쉬다 왔습니다. 직원분들도 매우 친절해요."
+        }
+      ],
+      "special_notes": [
+        "프라이빗 비치 이용 가능",
+        "골프 조기 예약 권장",
+        "성수기 최소 3박 이상 예약 필수",
+        "제주 공항에서 차량 40분",
+        "반려동물 전용 객실 운영 (사전 예약 필수)"
+      ],
+      "contact": {
+        "phone": "064-1234-5678",
+        "email": "info@jejuocean-resort.com",
+        "website": "www.jejuocean-resort.com"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "구좌 해산물 맛집", "distance_km": 2.0, "walk_time": 25, "drive_time": 8},
+          {"name": "리조트 내 레스토랑", "distance_km": 0.1, "walk_time": 1, "drive_time": 1}
+        ],
+        "attractions": [
+          {"name": "월정리 해변", "distance_km": 3.5, "walk_time": 45, "drive_time": 10},
+          {"name": "성산일출봉", "distance_km": 15, "walk_time": null, "drive_time": 25},
+          {"name": "만장굴", "distance_km": 8, "walk_time": null, "drive_time": 15},
+          {"name": "김녕 미로공원", "distance_km": 5, "walk_time": null, "drive_time": 12},
+          {"name": "세화 해변", "distance_km": 2, "walk_time": 25, "drive_time": 7}
+        ],
+        "shopping": [
+          {"name": "제주시내", "distance_km": 25, "walk_time": null, "drive_time": 35}
+        ]
+      },
+      "transportation": {
+        "subway": [],
+        "bus_stops": [
+          {"name": "구좌 버스정류장", "walk_time": 15, "distance_km": 1.2}
+        ],
+        "airport": {
+          "제주국제공항": {"distance_km": 30, "drive_time": 40, "taxi_time": 40, "public_transport_time": 80}
+        }
+      }
+    },
+    {
+      "name": "서귀포 펜션",
+      "type": "펜션",
+      "price": "70000",
+      "rating": 4.4,
+      "amenities": ["바다 전망", "바비큐 시설", "주차장", "취사 가능"],
+      "address": "서귀포시",
+      "parking": {
+        "available": true,
+        "type": "전용 주차장",
+        "capacity": "객실당 2대",
+        "fee": "무료",
+        "detail": "넓은 야외 주차 공간, 지붕 없음"
+      },
+      "checkin_checkout": {
+        "checkin": "15:00",
+        "checkout": "11:00",
+        "early_checkin": "가능 (14:00부터)",
+        "late_checkout": "가능 (협의 가능)"
+      },
+      "services": [
+        "바비큐 그릴 무료 제공",
+        "취사 도구 완비",
+        "세탁기 이용",
+        "자전거 무료 대여",
+        "관광지 정보 제공",
+        "숯 및 그릴망 판매"
+      ],
+      "reviews": [
+        {
+          "user": "유**",
+          "rating": 5,
+          "date": "2024-10-15",
+          "comment": "바다가 정말 가까워요! 바비큐 시설도 좋고 편하게 쉬다 왔어요. 주인분도 친절하세요."
+        },
+        {
+          "user": "신**",
+          "rating": 4,
+          "date": "2024-10-10",
+          "comment": "가족들과 제주 여행 완벽했어요. 취사 가능해서 직접 요리해 먹으니 좋았습니다."
+        },
+        {
+          "user": "하**",
+          "rating": 4,
+          "date": "2024-10-04",
+          "comment": "조용하고 깨끗해요. 주차 공간도 넉넉하고 근처에 맛집이 많아요. 가성비 좋습니다."
+        }
+      ],
+      "special_notes": [
+        "반려동물 동반 가능 (사전 고지 필수)",
+        "정방폭포 차량 5분",
+        "천지연폭포 차량 10분",
+        "최대 인원 8명",
+        "전 객실 독채 펜션",
+        "바비큐 이용 시 사전 예약 권장"
+      ],
+      "contact": {
+        "phone": "064-2345-6789",
+        "email": "seogwipo.pension@gmail.com"
+      },
+      "nearby_places": {
+        "restaurants": [
+          {"name": "서귀포 매일올레시장", "distance_km": 2.5, "walk_time": 30, "drive_time": 8},
+          {"name": "서귀포 해산물 맛집", "distance_km": 1.5, "walk_time": 18, "drive_time": 6}
+        ],
+        "attractions": [
+          {"name": "정방폭포", "distance_km": 3.0, "walk_time": 35, "drive_time": 8},
+          {"name": "천지연폭포", "distance_km": 5.0, "walk_time": null, "drive_time": 12},
+          {"name": "섭지코지", "distance_km": 25, "walk_time": null, "drive_time": 35},
+          {"name": "주상절리대", "distance_km": 8, "walk_time": null, "drive_time": 15}
+        ],
+        "shopping": [
+          {"name": "서귀포 시내", "distance_km": 3.0, "walk_time": 35, "drive_time": 10}
+        ]
+      },
+      "transportation": {
+        "subway": [],
+        "bus_stops": [
+          {"name": "서귀포 버스정류장", "walk_time": 10, "distance_km": 0.8}
+        ],
+        "airport": {
+          "제주국제공항": {"distance_km": 45, "drive_time": 55, "taxi_time": 55, "public_transport_time": 90}
+        }
+      }
+    }
+  ]
+}
+
