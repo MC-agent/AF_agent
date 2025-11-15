@@ -43,7 +43,7 @@ jobs:
         run: |
             GIT_SHA=${{ github.sha }} \
             BUILD_DATE=${{ steps.meta.outputs.created }} \
-            docker compose -f docker-compose.yml build af_agent
+            docker compose -f docker-compose.yaml build af_agent
       - name: Build (for tests)
         uses: docker/build-push-action@v6
         with:
