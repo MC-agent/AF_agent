@@ -39,11 +39,11 @@ jobs:
             type=ref,event=pr
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build (for tests)
-        run: |
-            GIT_SHA=${{ github.sha }} \
-            BUILD_DATE=${{ steps.meta.outputs.created }} \
-            docker compose -f docker-compose.yaml build af_agent
+      # - name: Build (for tests)
+      #   run: |
+      #       GIT_SHA=${{ github.sha }} \
+      #       BUILD_DATE=${{ steps.meta.outputs.created }} \
+      #       docker compose build af_agent
 
       # - name: Build (for tests) with docker compose
       #   run: |
