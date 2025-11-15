@@ -43,7 +43,7 @@ jobs:
         run: |
             GIT_SHA=${{ github.sha }} \
             BUILD_DATE=${{ steps.meta.outputs.created }} \
-            docker compose build 
+            docker compose build "${IMAGE_NAME}"
 
       # - name: Build (for tests) with docker compose
       #   run: |
@@ -67,13 +67,8 @@ jobs:
 
       - name: Build & Push (main only)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          context: .
-          file: ./docker-compose.yaml
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+        run: |
+          docker compose push "${IMAGE_NAME}"
 
   deploy:
     name: Deploy to EC2
