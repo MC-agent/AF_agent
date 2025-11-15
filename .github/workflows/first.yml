@@ -80,7 +80,7 @@ jobs:
         with:
           push: true
           context: .
-          file: ./Dockerfile
+          file: ./docker-compose.yaml
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
