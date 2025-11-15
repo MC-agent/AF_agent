@@ -64,6 +64,7 @@ services:
 
   #여기부턴 python app 부분
   app:
+    image: ${APP_IMAGE:-af_agent_local}
     build:
       context: .
       dockerfile: Dockerfile
@@ -72,7 +73,11 @@ services:
       - standalone              # Milvus 준비되면 app 시작
     environment:
       - MILVUS_URI=http://standalone:19530
-      # - OPENAI_API_KEY=${OPENAI_API_KEY}   # 필요하면 주석 해제
+      - OPENROUTER=${OPENROUTER}
+      - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
     volumes:
       - .:/app
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
