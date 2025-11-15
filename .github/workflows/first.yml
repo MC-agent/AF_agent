@@ -39,26 +39,26 @@ jobs:
             type=ref,event=pr
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      # - name: Build (for tests)
-      #   run: |
-      #       GIT_SHA=${{ github.sha }} \
-      #       BUILD_DATE=${{ steps.meta.outputs.created }} \
-      #       docker compose -f docker-compose.yml build af_agent
-      # - name: Build (for tests)
-      #   uses: docker/build-push-action@v6
-      #   with:
-      #     load: true
-      #     context: .
-      #     file: ./docker-compose.yml
-      #     tags: ${{ env.IMAGE_NAME }}:test
-      #     build-args: |
-      #       GIT_SHA=${{ github.sha }}
-      #       BUILD_DATE=${{ steps.meta.outputs.created }} 
-      - name: Build (for tests) with docker compose
+      - name: Build (for tests)
         run: |
-          GIT_SHA=${{ github.sha }} \
-          BUILD_DATE=${{ steps.meta.outputs.created }} \
-          docker compose -f docker-compose.yaml build af_agent
+            GIT_SHA=${{ github.sha }} \
+            BUILD_DATE=${{ steps.meta.outputs.created }} \
+            docker compose -f docker-compose.yml build af_agent
+      - name: Build (for tests)
+        uses: docker/build-push-action@v6
+        with:
+          load: true
+          context: .
+          file: ./docker-compose.yaml
+          tags: ${{ env.IMAGE_NAME }}:test
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ steps.meta.outputs.created }} 
+      # - name: Build (for tests) with docker compose
+      #   run: |
+      #     GIT_SHA=${{ github.sha }} \
+      #     BUILD_DATE=${{ steps.meta.outputs.created }} \
+      #     docker compose -f docker-compose.yaml build af_agent
       # - name: Run tests inside container
       #   run: |
       #     docker run --rm \
