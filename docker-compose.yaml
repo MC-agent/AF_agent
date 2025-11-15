@@ -66,7 +66,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./Dockerfile
     depends_on:
       - standalone              # Milvus 준비되면 app 시작
     environment:
