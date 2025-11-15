@@ -1,141 +1,81 @@
+# ----------------------------
 # Python
+# ----------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-pip-wheel-metadata/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
 
-# Virtual Environment
-venv/
+# 가상환경
 env/
-ENV/
-env.bak/
-venv.bak/
+venv/
 .venv/
 
-# Environment Variables
-.env
-.env.local
-.env.*.local
+# 패키징 / 빌드 산출물
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
 
-# IDE & Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.project
-.pydevproject
-.settings/
-*.sublime-project
-*.sublime-workspace
-
-# Operating System
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-Desktop.ini
-
-# Logs
-*.log
-logs/
-log/
-*.log.*
-
-# Testing
+# 테스트 / 커버리지
 .pytest_cache/
+.tox/
+.nox/
 .coverage
 .coverage.*
 htmlcov/
-.tox/
-.nox/
-coverage.xml
-*.cover
-.hypothesis/
 .cache/
 
-# AI/ML Specific
-models/
-*.h5
-*.pkl
-*.pickle
-*.joblib
-*.pt
-*.pth
-*.ckpt
-*.pb
-data/raw/
-data/processed/
-*.csv
-*.parquet
-wandb/
-mlruns/
-
-# Agent Specific
-agent_logs/
-agent_cache/
-conversations/
-memory/
-*.db
-*.sqlite
-*.sqlite3
-
-# Documentation
-docs/_build/
-site/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-*.ipynb
-
-# Docker
-.dockerignore
-
-# Temporary files
-*.tmp
-*.temp
+# 로그
+*.log
+logs/
 tmp/
-temp/
-.cache/
+*.tmp
 
-# Package managers
-poetry.lock
-Pipfile.lock
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# Secrets & Keys
+# ----------------------------
+# 환경 변수 / 시크릿
+# ----------------------------
+.env
+.env.*
+*.env
 *.pem
 *.key
-*.cert
-secrets/
-credentials/
 
+# ----------------------------
+# Docker / Milvus / MinIO / Etcd 데이터
+# ----------------------------
+volumes/
+volumes/**
+
+# 혹시 다른 위치에 볼륨 디렉토리 쓸 경우
+*/volumes/
+**/volumes/
+
+# ----------------------------
+# IDE / OS
+# ----------------------------
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+
+# VSCode
+.vscode/
+.vscode/*
+
+# PyCharm
+.idea/
+*.iml
+
+# 기타 OS 잡파일
+*~
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ----------------------------
+# 프로젝트 특화
+# ----------------------------
+# (추가로 무거운 데이터 폴더 생기면 여기 아래에 계속 추가)
