@@ -40,15 +40,20 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build (for tests)
-        uses: docker/build-push-action@v6
-        with:
-          load: true
-          context: .
-          file: ./Dockerfile
-          tags: ${{ env.IMAGE_NAME }}:test
-          build-args: |
-            GIT_SHA=${{ github.sha }}
-            BUILD_DATE=${{ steps.meta.outputs.created }} 
+        run: |
+            GIT_SHA=${{ github.sha }} \
+            BUILD_DATE=${{ steps.meta.outputs.created }} \
+            docker compose -f docker-compose.yml build af_agent
+      # - name: Build (for tests)
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     load: true
+      #     context: .
+      #     file: ./Dockerfile
+      #     tags: ${{ env.IMAGE_NAME }}:test
+      #     build-args: |
+      #       GIT_SHA=${{ github.sha }}
+      #       BUILD_DATE=${{ steps.meta.outputs.created }} 
 
       # - name: Run tests inside container
       #   run: |
@@ -136,19 +141,18 @@ jobs:
             
   
             cd /opt/af-agent
-
-            docker stop af_agent 2>/dev/null || true
+            
+            docker compose down 2>/dev/null || true
             
             docker rm af_agent 2>/dev/null || true
+
+            docker compose pull "$IMAGE"
             
-            docker pull "$IMAGE"
+            docker compose up -d --name af_agent "$IMAGE"
 
             docker image prune -f
             
-            docker run -it -d \
-            --name af_agent \
-            -p 8080:8080 \
-            "$IMAGE"
+    
   
          
   
