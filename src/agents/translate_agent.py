@@ -55,5 +55,6 @@ agent = create_react_agent(
     prompt="당신은 translate_tool만 사용할 수 있습니다.",
 )
 
-result = agent.invoke({"messages": [{"role": "user", "content": "大阪のゆうめなところを探してみて！"}]})
-print(result['messages'][-1].content)
+if __name__ == "__main__":
+    result = agent.invoke({"messages": [{"role": "user", "content": "大阪のゆうめなところを探してみて！"}]})
+    print(result['messages'][-1].content)
