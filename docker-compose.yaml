@@ -67,7 +67,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: af_app
     depends_on:
       - standalone              # Milvus 준비되면 app 시작
     environment:
