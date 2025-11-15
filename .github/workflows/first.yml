@@ -9,7 +9,7 @@ on:
 
 env:
   IMAGE_NAME: af_agent
-  TEST_CMD: pytest -q   
+  TEST_CMD: pytest -q
 
 permissions:
   contents: read
@@ -40,16 +40,16 @@ jobs:
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build (for tests)
-        run: |
-            GIT_SHA=${{ github.sha }} \
-            BUILD_DATE=${{ steps.meta.outputs.created }} \
-            docker compose build "${IMAGE_NAME}"
+        uses: docker/build-push-action@v6
+        with:
+          load: true
+          context: .
+          file: ./Dockerfile
+          tags: ${{ env.IMAGE_NAME }}:test
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            BUILD_DATE=${{ steps.meta.outputs.created }} 
 
-      # - name: Build (for tests) with docker compose
-      #   run: |
-      #     GIT_SHA=${{ github.sha }} \
-      #     BUILD_DATE=${{ steps.meta.outputs.created }} \
-      #     docker compose -f docker-compose.yaml build af_agent
       # - name: Run tests inside container
       #   run: |
       #     docker run --rm \
@@ -67,8 +67,13 @@ jobs:
 
       - name: Build & Push (main only)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        run: |
-            docker compose -f ./docker-compose.yaml push af_agent
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .
+          file: ./Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
   deploy:
     name: Deploy to EC2
@@ -88,8 +93,8 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }} 
-          envs: GITHUB_SHA
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          envs: GITHUB_SHA,GITHUB_REPOSITORY
           script_stop: true
           script: |
             set -e
@@ -97,52 +102,79 @@ jobs:
             export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
 
-            sudo apt-get update
-            sudo apt-get install -y ca-certificates curl gnupg lsb-release
-            
-            sudo install -m 0755 -d /etc/apt/keyrings
-            
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-            sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
-            
-            echo \
-              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-              https://download.docker.com/linux/ubuntu \
-              $(lsb_release -cs) stable" | \
-              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-            
-            sudo apt-get update
-            sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            
-            sudo systemctl enable --now docker
-            sudo usermod -aG docker $USER
+            # Install Docker if not exists
+            if ! command -v docker &> /dev/null; then
+              sudo apt-get update
+              sudo apt-get install -y ca-certificates curl gnupg lsb-release
 
-         
+              sudo install -m 0755 -d /etc/apt/keyrings
 
-            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
-            echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            else
-            echo "GHCR_USERNAME/GHCR_READ_TOKEN not set. Assuming package is PUBLIC."
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+              sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+
+              echo \
+                "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+                https://download.docker.com/linux/ubuntu \
+                $(lsb_release -cs) stable" | \
+                sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+              sudo apt-get update
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+              sudo systemctl enable --now docker
+              sudo usermod -aG docker $USER
             fi
 
-            
+            # Login to GHCR
+            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
+              echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+            else
+              echo "GHCR_USERNAME/GHCR_READ_TOKEN not set. Assuming package is PUBLIC."
+            fi
+
+            # Setup deployment directory
             sudo mkdir -p /opt/af-agent
-            sudo chown -R ubuntu:ubuntu /opt/af-agent
-            
-  
+            sudo chown -R $USER:$USER /opt/af-agent
             cd /opt/af-agent
-            
-            docker compose down 2>/dev/null || true
-            
-            docker rm af_agent 2>/dev/null || true
 
-            docker compose pull "$IMAGE"
-            
-            docker compose up -d --name af_agent "$IMAGE"
+            # Install git if not exists
+            if ! command -v git &> /dev/null; then
+              sudo apt-get install -y git
+            fi
 
+            # Clone or pull repository
+            if [ -d ".git" ]; then
+              git fetch origin
+              git checkout main
+              git pull origin main
+            else
+              git clone https://github.com/${GITHUB_REPOSITORY}.git .
+              git checkout main
+            fi
+
+            # Create .env file from secrets
+            cat > .env << EOF
+            OPENROUTER=${{ secrets.OPENROUTER }}
+            OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
+            LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
+            LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
+            LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
+            EOF
+
+            # Stop and remove existing containers
+            docker compose down || true
+
+            # Pull or build the latest app image from GHCR
+            docker pull "$IMAGE" || true
+
+            # Update docker-compose to use GHCR image
+            export APP_IMAGE="$IMAGE"
+
+            # Start services with docker compose
+            docker compose up -d
+
+            # Cleanup old images
             docker image prune -f
-            
-    
   
          
   
