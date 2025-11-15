@@ -68,7 +68,7 @@ jobs:
       - name: Build & Push (main only)
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
-          docker compose push "${IMAGE_NAME}"
+            docker compose -f ./docker-compose.yaml push af_agent
 
   deploy:
     name: Deploy to EC2
