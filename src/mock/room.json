@@ -57,6 +57,38 @@
         "phone": "02-1234-5678",
         "email": "info@seoulcityhotel.com"
       },
+      "room_types": [
+        {
+          "type": "스탠다드 더블",
+          "price": 120000,
+          "total_rooms": 20,
+          "max_guests": 2,
+          "bed_type": "더블 베드 1개",
+          "size_sqm": 25,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨"],
+          "view": "시티뷰"
+        },
+        {
+          "type": "디럭스 트윈",
+          "price": 150000,
+          "total_rooms": 15,
+          "max_guests": 3,
+          "bed_type": "싱글 베드 2개",
+          "size_sqm": 30,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "소파"],
+          "view": "시티뷰"
+        },
+        {
+          "type": "프리미엄 스위트",
+          "price": 250000,
+          "total_rooms": 5,
+          "max_guests": 4,
+          "bed_type": "킹 베드 1개 + 소파베드",
+          "size_sqm": 50,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "거실", "욕조", "커피머신"],
+          "view": "강남 파노라마뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "강남 맛집 거리", "distance_km": 0.3, "walk_time": 4, "drive_time": 2},
@@ -138,6 +170,38 @@
         "phone": "02-2345-6789",
         "email": "myeongdong.gh@gmail.com"
       },
+      "room_types": [
+        {
+          "type": "도미토리 (4인실)",
+          "price": 30000,
+          "total_rooms": 5,
+          "max_guests": 1,
+          "bed_type": "2층 침대",
+          "size_sqm": 20,
+          "amenities": ["무료 WiFi", "개인 사물함", "공용 욕실"],
+          "view": "내부"
+        },
+        {
+          "type": "개인실 (더블)",
+          "price": 45000,
+          "total_rooms": 8,
+          "max_guests": 2,
+          "bed_type": "더블 베드 1개",
+          "size_sqm": 12,
+          "amenities": ["무료 WiFi", "TV", "개인 욕실"],
+          "view": "명동거리뷰"
+        },
+        {
+          "type": "개인실 (트윈)",
+          "price": 50000,
+          "total_rooms": 4,
+          "max_guests": 2,
+          "bed_type": "싱글 베드 2개",
+          "size_sqm": 14,
+          "amenities": ["무료 WiFi", "TV", "개인 욕실"],
+          "view": "명동거리뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "명동 맛집 거리", "distance_km": 0.1, "walk_time": 2, "drive_time": 1},
@@ -223,6 +287,28 @@
         "phone": "02-3456-7890",
         "email": "hangang.pension@naver.com"
       },
+      "room_types": [
+        {
+          "type": "독채 펜션 (4인)",
+          "price": 85000,
+          "total_rooms": 6,
+          "max_guests": 4,
+          "bed_type": "퀸 베드 1개 + 싱글 베드 2개",
+          "size_sqm": 45,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "취사도구", "식기", "세탁기"],
+          "view": "한강뷰"
+        },
+        {
+          "type": "독채 펜션 (6인)",
+          "price": 120000,
+          "total_rooms": 3,
+          "max_guests": 6,
+          "bed_type": "퀸 베드 2개 + 싱글 베드 2개",
+          "size_sqm": 65,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "취사도구", "식기", "세탁기", "거실"],
+          "view": "한강 파노라마뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "여의도 맛집 거리", "distance_km": 1.5, "walk_time": 18, "drive_time": 8},
@@ -312,6 +398,38 @@
         "phone": "051-1234-5678",
         "email": "info@haeundae-resort.com"
       },
+      "room_types": [
+        {
+          "type": "스탠다드 오션뷰",
+          "price": 150000,
+          "total_rooms": 30,
+          "max_guests": 2,
+          "bed_type": "더블 베드 1개",
+          "size_sqm": 32,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "발코니"],
+          "view": "오션뷰"
+        },
+        {
+          "type": "디럭스 오션뷰",
+          "price": 200000,
+          "total_rooms": 25,
+          "max_guests": 3,
+          "bed_type": "킹 베드 1개",
+          "size_sqm": 40,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "발코니", "욕조", "커피머신"],
+          "view": "오션뷰"
+        },
+        {
+          "type": "프리미엄 스위트",
+          "price": 350000,
+          "total_rooms": 10,
+          "max_guests": 4,
+          "bed_type": "킹 베드 1개 + 소파베드",
+          "size_sqm": 70,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "거실", "대형 발코니", "욕조", "커피머신", "미니바"],
+          "view": "프리미엄 오션뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "해운대 횟집 거리", "distance_km": 0.2, "walk_time": 3, "drive_time": 2},
@@ -396,6 +514,38 @@
         "phone": "051-2345-6789",
         "email": "gwangalli.hotel@daum.net"
       },
+      "room_types": [
+        {
+          "type": "스탠다드 더블",
+          "price": 95000,
+          "total_rooms": 18,
+          "max_guests": 2,
+          "bed_type": "더블 베드 1개",
+          "size_sqm": 24,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨"],
+          "view": "시티뷰"
+        },
+        {
+          "type": "디럭스 오션뷰",
+          "price": 135000,
+          "total_rooms": 12,
+          "max_guests": 2,
+          "bed_type": "퀸 베드 1개",
+          "size_sqm": 28,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "발코니"],
+          "view": "광안대교뷰"
+        },
+        {
+          "type": "패밀리 룸",
+          "price": 170000,
+          "total_rooms": 6,
+          "max_guests": 4,
+          "bed_type": "퀸 베드 1개 + 싱글 베드 2개",
+          "size_sqm": 38,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "발코니", "소파"],
+          "view": "광안대교뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "광안리 횟집 거리", "distance_km": 0.15, "walk_time": 2, "drive_time": 1},
@@ -488,6 +638,48 @@
         "email": "info@jejuocean-resort.com",
         "website": "www.jejuocean-resort.com"
       },
+      "room_types": [
+        {
+          "type": "스탠다드 오션뷰",
+          "price": 180000,
+          "total_rooms": 40,
+          "max_guests": 2,
+          "bed_type": "킹 베드 1개",
+          "size_sqm": 38,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "발코니", "커피머신"],
+          "view": "오션뷰"
+        },
+        {
+          "type": "디럭스 오션뷰",
+          "price": 250000,
+          "total_rooms": 30,
+          "max_guests": 3,
+          "bed_type": "킹 베드 1개 + 소파베드",
+          "size_sqm": 50,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "대형 발코니", "욕조", "커피머신", "미니바"],
+          "view": "프리미엄 오션뷰"
+        },
+        {
+          "type": "프리미엄 스위트",
+          "price": 400000,
+          "total_rooms": 15,
+          "max_guests": 4,
+          "bed_type": "킹 베드 1개 + 소파베드",
+          "size_sqm": 80,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "거실", "대형 발코니", "욕조", "커피머신", "미니바", "와인냉장고"],
+          "view": "파노라마 오션뷰"
+        },
+        {
+          "type": "프라이빗 풀 빌라",
+          "price": 600000,
+          "total_rooms": 8,
+          "max_guests": 4,
+          "bed_type": "킹 베드 2개",
+          "size_sqm": 120,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "거실", "야외 수영장", "자쿠지", "바비큐 시설", "커피머신", "미니바", "와인냉장고"],
+          "view": "프라이빗 비치뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "구좌 해산물 맛집", "distance_km": 2.0, "walk_time": 25, "drive_time": 8},
@@ -574,6 +766,38 @@
         "phone": "064-2345-6789",
         "email": "seogwipo.pension@gmail.com"
       },
+      "room_types": [
+        {
+          "type": "독채 펜션 (4인)",
+          "price": 70000,
+          "total_rooms": 4,
+          "max_guests": 4,
+          "bed_type": "퀸 베드 1개 + 싱글 베드 2개",
+          "size_sqm": 50,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "취사도구", "식기", "세탁기", "바비큐 시설"],
+          "view": "바다뷰"
+        },
+        {
+          "type": "독채 펜션 (6인)",
+          "price": 100000,
+          "total_rooms": 3,
+          "max_guests": 6,
+          "bed_type": "퀸 베드 2개 + 싱글 베드 2개",
+          "size_sqm": 70,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "취사도구", "식기", "세탁기", "바비큐 시설", "거실"],
+          "view": "바다뷰"
+        },
+        {
+          "type": "독채 펜션 (8인)",
+          "price": 140000,
+          "total_rooms": 2,
+          "max_guests": 8,
+          "bed_type": "퀸 베드 3개 + 싱글 베드 2개",
+          "size_sqm": 90,
+          "amenities": ["무료 WiFi", "TV", "냉장고", "에어컨", "취사도구", "식기", "세탁기", "바비큐 시설", "거실", "테라스"],
+          "view": "프리미엄 바다뷰"
+        }
+      ],
       "nearby_places": {
         "restaurants": [
           {"name": "서귀포 매일올레시장", "distance_km": 2.5, "walk_time": 30, "drive_time": 8},
