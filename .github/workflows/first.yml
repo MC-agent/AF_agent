@@ -98,8 +98,8 @@ jobs:
           script_stop: true
           script: |
             set -Eeuo pipefail
-            trap 'echo "[ERROR] $BASH_COMMAND (line $LINENO)
-             실패" >&2' ERR
+            # trap 'echo "[ERROR] $BASH_COMMAND (line $LINENO)
+            #  실패" >&2' ERR
             set -e
             export IMAGE_SHA="${GITHUB_SHA}"
             export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
