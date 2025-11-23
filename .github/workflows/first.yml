@@ -156,28 +156,28 @@ jobs:
             fi
 
             # Create .env file from secrets
-            cat > .env << EOF
-            OPENROUTER=${{ secrets.OPENROUTER }}
-            OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
-            LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
-            LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
-            LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
-            EOF
+            # cat > .env << EOF
+            # OPENROUTER=${{ secrets.OPENROUTER }}
+            # OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
+            # LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
+            # LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
+            # LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
+            # EOF
 
-            # Stop and remove existing containers
-            docker compose down || true
+            # # Stop and remove existing containers
+            # docker compose down || true
 
-            # Pull or build the latest app image from GHCR
-            docker pull "$IMAGE" || true
+            # # Pull or build the latest app image from GHCR
+            # docker pull "$IMAGE" || true
 
-            # Update docker-compose to use GHCR image
-            export APP_IMAGE="$IMAGE"
+            # # Update docker-compose to use GHCR image
+            # export APP_IMAGE="$IMAGE"
 
-            # Start services with docker compose
-            docker compose up -d
+            # # Start services with docker compose
+            # docker compose up -d
 
-            # Cleanup old images
-            docker image prune -f
+            # # Cleanup old images
+            # docker image prune -f
   
          
   
