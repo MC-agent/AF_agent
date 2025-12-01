@@ -159,5 +159,5 @@ jobs:
           sudo docker compose down || true
           sudo docker compose up -d
 
-        # --- 오래된 이미지 정리 ---
-        sudo docker image prune -f
+          # --- 오래된 이미지 정리 ---
+          sudo docker image prune -f
