@@ -89,12 +89,9 @@ jobs:
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          echo "Host=[$SSH_HOST]"
-          echo "User=[$SSH_USER]"
-          echo "Key length=$(echo "$SSH_PRIVATE_KEY" | wc -c)"
-          [ -z $SSH_HOST ] && echo "❌ Missing SSH_HOST" && exit 1
-          [ -z $SSH_USER ] && echo "❌ Missing SSH_USER" && exit 1
-          [ -z $SSH_PRIVATE_KEY ] && echo "❌ Missing SSH_PRIVATE_KEY" && exit 1
+          [ -z env.SSH_HOST ] && echo "❌ Missing SSH_HOST" && exit 1
+          [ -z env.SSH_USER ] && echo "❌ Missing SSH_USER" && exit 1
+          [ -z env.SSH_PRIVATE_KEY ] && echo "❌ Missing SSH_PRIVATE_KEY" && exit 1
 
       
       - name: Deploy over SSH
@@ -114,28 +111,28 @@ jobs:
             export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
 
-            # Install Docker if not exists
-            # if ! command -v docker &> /dev/null; then
-            #   sudo apt-get update
-            #   sudo apt-get install -y ca-certificates curl gnupg lsb-release
+            Install Docker if not exists
+            if ! command -v docker &> /dev/null; then
+              sudo apt-get update
+              sudo apt-get install -y ca-certificates curl gnupg lsb-release
 
-            #   sudo install -m 0755 -d /etc/apt/keyrings
+              sudo install -m 0755 -d /etc/apt/keyrings
 
-            #   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-            #   sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
+              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+              sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
 
-            #   echo \
-            #     "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-            #     https://download.docker.com/linux/ubuntu \
-            #     $(lsb_release -cs) stable" | \
-            #     sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+              echo \
+                "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+                https://download.docker.com/linux/ubuntu \
+                $(lsb_release -cs) stable" | \
+                sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
-            #   sudo apt-get update
-            #   sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+              sudo apt-get update
+              sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-            #   sudo systemctl enable --now docker
-            #   sudo usermod -aG docker $USER
-            # fi
+              sudo systemctl enable --now docker
+              sudo usermod -aG docker $USER
+            fi
 
             # Login to GHCR
             if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
