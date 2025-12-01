@@ -129,6 +129,7 @@ jobs:
           fi
   
           # --- 배포 디렉토리 준비 ---
+          sudo rm -rf /opt/af-agent
           sudo mkdir -p /opt/af-agent
           sudo chown -R $USER:$USER /opt/af-agent
           cd /opt/af-agent
@@ -139,14 +140,8 @@ jobs:
           fi
   
           # --- 레포 clone 또는 pull ---
-          if [ -d ".git" ]; then
-            git fetch origin
-            git checkout main
-            git pull origin main
-          else
-            git clone https://github.com/${GITHUB_REPOSITORY}.git .
-            git checkout main
-          fi
+          git clone https://github.com/${GITHUB_REPOSITORY}.git .
+          git checkout main
   
           # --- 최신 이미지 pull ---
           sudo docker pull "$IMAGE"
