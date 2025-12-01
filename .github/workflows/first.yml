@@ -82,15 +82,20 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    
       - name: Preflight secrets check
         env:
           SSH_HOST: ${{ secrets.SSH_HOST }}
           SSH_USER: ${{ secrets.SSH_USER }}
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
+          echo "Host=[$SSH_HOST]"
+          echo "User=[$SSH_USER]"
+          echo "Key length=$(echo "$SSH_PRIVATE_KEY" | wc -c)"
           [ -z "$SSH_HOST" ] && echo "❌ Missing SSH_HOST" && exit 1
           [ -z "$SSH_USER" ] && echo "❌ Missing SSH_USER" && exit 1
           [ -z "$SSH_PRIVATE_KEY" ] && echo "❌ Missing SSH_PRIVATE_KEY" && exit 1
+
       
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
