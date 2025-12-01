@@ -164,20 +164,20 @@ jobs:
             # LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
             # EOF
 
-            # # Stop and remove existing containers
-            # docker compose down || true
+            # Stop and remove existing containers
+            docker compose down || true
 
-            # # Pull or build the latest app image from GHCR
-            # docker pull "$IMAGE" || true
+            # Pull or build the latest app image from GHCR
+            docker compose pull "$IMAGE" || true
 
-            # # Update docker-compose to use GHCR image
-            # export APP_IMAGE="$IMAGE"
+            # Update docker-compose to use GHCR image
+            export APP_IMAGE="$IMAGE"
 
-            # # Start services with docker compose
-            # docker compose up -d
+            # Start services with docker compose
+            docker compose up -d
 
-            # # Cleanup old images
-            # docker image prune -f
+            # Cleanup old images
+            docker image prune -f
   
          
   
