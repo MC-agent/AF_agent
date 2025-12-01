@@ -82,15 +82,15 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Validate secrets
-        env:
-            HOST: ${{ secrets.SSH_HOST }}
-            USER: ${{ secrets.SSH_USER }}
-            KEY:  ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Preflight secrets check
         run: |
-            for v in HOST USER KEY; do
-              [ -z "${!v}" ] && echo "Missing required secret: $v" && exit 1
-            done
+          [ -z "$SSH_HOST" ] && echo "❌ Missing SSH_HOST" && exit 1
+          [ -z "$SSH_USER" ] && echo "❌ Missing SSH_USER" && exit 1
+          [ -z "$SSH_PRIVATE_KEY" ] && echo "❌ Missing SSH_PRIVATE_KEY" && exit 1
+        env:
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
 
       - name: Deploy over SSH
