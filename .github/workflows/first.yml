@@ -82,98 +82,82 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: GITHUB_SHA,GITHUB_REPOSITORY
-          script_stop: true
-          script: |
-            set -Eeuo pipefail
-            # trap 'echo "[ERROR] $BASH_COMMAND (line $LINENO)
-            #  실패" >&2' ERR
-            set -e
-            export IMAGE_SHA="${GITHUB_SHA}"
-            export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
-            export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
-
-            #Install Docker if not exists
-            if ! command -v docker &> /dev/null; then
-              sudo apt-get update
-              sudo apt-get install -y ca-certificates curl gnupg lsb-release
-
-              sudo install -m 0755 -d /etc/apt/keyrings
-
-              curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+    - name: Deploy over SSH
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        envs: GITHUB_SHA,GITHUB_REPOSITORY
+        script_stop: true
+        script: |
+          set -Eeuo pipefail
+          set -x   # 어떤 명령이 실행되는지 로그에 다 찍힘 (디버깅용)
+  
+          # --- 이미지 태그 계산 ---
+          GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
+          IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-${GITHUB_SHA}"
+          echo "Using image: $IMAGE"
+  
+          # --- Docker 설치 (없으면) ---
+          if ! command -v docker &> /dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y ca-certificates curl gnupg lsb-release
+  
+            sudo install -m 0755 -d /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
               sudo gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
-
-              echo \
-                "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-                https://download.docker.com/linux/ubuntu \
-                $(lsb_release -cs) stable" | \
-                sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-              sudo apt-get update
-              sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-              sudo systemctl enable --now docker
-              sudo usermod -aG docker $USER
-            fi
-
-            # Login to GHCR
-            if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
-              echo "${{ secrets.GHCR_READ_TOKEN }}" | docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
-            else
-              echo "GHCR_USERNAME/GHCR_READ_TOKEN not set. Assuming package is PUBLIC."
-            fi
-
-            # Setup deployment directory
-            sudo mkdir -p /opt/af-agent
-            sudo chown -R $USER:$USER /opt/af-agent
-            cd /opt/af-agent
-
-            # Install git if not exists
-            if ! command -v git &> /dev/null; then
-              sudo apt-get install -y git
-            fi
-
-            # Clone or pull repository
-            if [ -d ".git" ]; then
-              git fetch origin
-              git checkout main
-              git pull origin main
-            else
-              git clone https://github.com/${GITHUB_REPOSITORY}.git .
-              git checkout main
-            fi
-
-            # Create .env file from secrets
-            # cat > .env << EOF
-            # OPENROUTER=${{ secrets.OPENROUTER }}
-            # OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
-            # LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
-            # LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
-            # LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
-            # EOF
-
-            # Stop and remove existing containers
-            docker down "$IMAGE" || true
-
-            # Pull or build the latest app image from GHCR
-            docker pull "$IMAGE" || true
-
-            # Update docker-compose to use GHCR image
-            export APP_IMAGE="$IMAGE"
-
-            # Start services with docker compose
-            docker compose up -d
-
-            # Cleanup old images
-            docker image prune -f
   
-         
+            echo \
+              "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+              https://download.docker.com/linux/ubuntu \
+              $(lsb_release -cs) stable" | \
+              sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
   
+            sudo apt-get update
+            sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   
+            sudo systemctl enable --now docker
+          fi
+  
+          # --- GHCR 로그인 (private package면 필수) ---
+          if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_READ_TOKEN }}" ]; then
+            echo "Login to GHCR..."
+            echo "${{ secrets.GHCR_READ_TOKEN }}" | sudo docker login ghcr.io -u "${{ secrets.GHCR_USERNAME }}" --password-stdin
+          else
+            echo "GHCR_USERNAME/GHCR_READ_TOKEN not set. Assuming image is public."
+          fi
+  
+          # --- 배포 디렉토리 준비 ---
+          sudo mkdir -p /opt/af-agent
+          sudo chown -R $USER:$USER /opt/af-agent
+          cd /opt/af-agent
+  
+          # --- git 설치 (없으면) ---
+          if ! command -v git &> /dev/null; then
+            sudo apt-get install -y git
+          fi
+  
+          # --- 레포 clone 또는 pull ---
+          if [ -d ".git" ]; then
+            git fetch origin
+            git checkout main
+            git pull origin main
+          else
+            git clone https://github.com/${GITHUB_REPOSITORY}.git .
+            git checkout main
+          fi
+  
+          # --- 최신 이미지 pull ---
+          sudo docker pull "$IMAGE"
+  
+          # docker-compose.yml 안에서 image: ${APP_IMAGE} 라고 쓴다고 가정
+          export APP_IMAGE="$IMAGE"
+  
+          # --- 기존 컨테이너 종료 후 새로 띄우기 ---
+          # docker down X (없는 명령) → docker compose down 으로 변경
+          sudo docker compose down || true
+          sudo docker compose up -d
+
+        # --- 오래된 이미지 정리 ---
+        sudo docker image prune -f
