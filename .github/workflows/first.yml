@@ -83,17 +83,6 @@ jobs:
     
     steps:
     
-      - name: Preflight secrets check
-        env:
-          SSH_HOST: ${{ secrets.SSH_HOST }}
-          SSH_USER: ${{ secrets.SSH_USER }}
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          [ -z env.SSH_HOST ] && echo "❌ Missing SSH_HOST" && exit 1
-          [ -z env.SSH_USER ] && echo "❌ Missing SSH_USER" && exit 1
-          [ -z env.SSH_PRIVATE_KEY ] && echo "❌ Missing SSH_PRIVATE_KEY" && exit 1
-
-      
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -111,7 +100,7 @@ jobs:
             export GH_OWNER="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
             export IMAGE="ghcr.io/$GH_OWNER/af_agent:sha-$IMAGE_SHA"
 
-            Install Docker if not exists
+            #Install Docker if not exists
             if ! command -v docker &> /dev/null; then
               sudo apt-get update
               sudo apt-get install -y ca-certificates curl gnupg lsb-release
