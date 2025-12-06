@@ -60,8 +60,18 @@ services:
       - "etcd"
       - "minio"
 
+  # Attu - Milvus GUI 관리 도구
+  attu:
+    container_name: milvus-attu
+    image: zilliz/attu:latest
+    environment:
+      MILVUS_URL: standalone:19530
+    ports:
+      - "8001:3000"
+    depends_on:
+      - standalone
 
-  #여기부턴 python app 부분
+  # 여기부턴 python app 부분
   app:
     image: ${APP_IMAGE:-af_agent_local}
     build:
