@@ -11,7 +11,11 @@ import os
 from pathlib import Path
 from typing import List, Dict
 from pymilvus import MilvusClient, DataType
-from sentence_transformers import SentenceTransformer
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# 환경 변수 로드
+load_dotenv()
 
 # 경로 설정
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -21,8 +25,10 @@ CRAWLED_DIR = BASE_DIR / "volumes" / "crawled"
 MILVUS_URI = os.getenv("MILVUS_URI", "http://localhost:19530")
 COLLECTION_NAME = "kakao_places"
 
-# 임베딩 모델 (한국어 지원)
-model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+# OpenAI 클라이언트
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+EMBEDDING_MODEL = "text-embedding-3-small"
+EMBEDDING_DIM = 1536  # text-embedding-3-small의 차원
 
 
 def create_collection(client: MilvusClient):
@@ -49,7 +55,7 @@ def create_collection(client: MilvusClient):
     schema.add_field(field_name="address", datatype=DataType.VARCHAR, max_length=500)
     schema.add_field(field_name="text_content", datatype=DataType.VARCHAR, max_length=65535)  # 검색용 텍스트
     schema.add_field(field_name="full_data", datatype=DataType.VARCHAR, max_length=65535)  # 전체 JSON 데이터
-    schema.add_field(field_name="embedding", datatype=DataType.FLOAT_VECTOR, dim=768)  # ko-sroberta 차원
+    schema.add_field(field_name="embedding", datatype=DataType.FLOAT_VECTOR, dim=EMBEDDING_DIM)  # OpenAI embedding 차원
 
     # 인덱스 파라미터
     index_params = client.prepare_index_params()
@@ -134,8 +140,12 @@ def insert_data(client: MilvusClient, file_path: Path, place_type: str):
         # 텍스트 컨텐츠 생성
         text_content = create_text_content(place)
 
-        # 임베딩 생성
-        embedding = model.encode(text_content).tolist()
+        # OpenAI 임베딩 생성
+        response = openai_client.embeddings.create(
+            input=text_content,
+            model=EMBEDDING_MODEL
+        )
+        embedding = response.data[0].embedding
 
         # 데이터 레코드
         record = {

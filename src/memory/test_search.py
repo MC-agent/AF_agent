@@ -9,14 +9,19 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 import os
 import json
 from pymilvus import MilvusClient
-from sentence_transformers import SentenceTransformer
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# 환경 변수 로드
+load_dotenv()
 
 # Milvus 설정
 MILVUS_URI = os.getenv("MILVUS_URI", "http://localhost:19530")
 COLLECTION_NAME = "kakao_places"
 
-# 임베딩 모델
-model = SentenceTransformer('jhgan/ko-sroberta-multitask')
+# OpenAI 클라이언트
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+EMBEDDING_MODEL = "text-embedding-3-small"
 
 
 def search_places(query: str, top_k: int = 3):
@@ -28,8 +33,12 @@ def search_places(query: str, top_k: int = 3):
     # Milvus 클라이언트
     client = MilvusClient(uri=MILVUS_URI)
 
-    # 쿼리 임베딩
-    query_embedding = model.encode(query).tolist()
+    # OpenAI 임베딩 생성
+    response = openai_client.embeddings.create(
+        input=query,
+        model=EMBEDDING_MODEL
+    )
+    query_embedding = response.data[0].embedding
 
     # 검색
     results = client.search(
