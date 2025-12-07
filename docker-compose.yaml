@@ -87,6 +87,8 @@ services:
       - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
       - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - KAKAO_API_KEY=${KAKAO_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     volumes:
       - .:/app
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
