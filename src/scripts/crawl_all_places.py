@@ -21,7 +21,7 @@ from src.crawlers.kakao_map_crawler import KakaoMapCrawler
 
 
 # 경로 설정
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent  # /app
 RAW_DIR = BASE_DIR / "volumes" / "raw"
 OUTPUT_DIR = BASE_DIR / "volumes" / "crawled"
 
