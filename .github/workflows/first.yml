@@ -151,7 +151,10 @@ jobs:
   
           # --- 기존 컨테이너 종료 후 새로 띄우기 ---
           # docker down X (없는 명령) → docker compose down 으로 변경
-          sudo docker compose down || true
+          sudo docker compose down --remove-orphans || true
+
+          sudo docker rm -f af_app || true
+          
           sudo docker compose up -d
 
           # --- 오래된 이미지 정리 ---
