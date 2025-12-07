@@ -1,10 +1,12 @@
 import requests
 import json
+import os
 from pathlib import Path
 from typing import List, Dict
 
 
-KAKAO_API_KEY = "42d92ccdf88326f8f0e6aca63f5f26a8"
+
+KAKAO_API_KEY = os.getenv("KAKAO_API_KEY")
 RAW_DIR = Path(__file__).resolve().parent.parent.parent / "volumes" / "raw"
 
 def search_category(
