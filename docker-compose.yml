@@ -81,16 +81,17 @@ services:
       - standalone              # Milvus 준비되면 app 시작
     environment:
       - MILVUS_URI=http://standalone:19530
-      # - OPENROUTER=${OPENROUTER}
-      # - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
-      # - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
-      # - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
-      # - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
-      # - KAKAO_API_KEY=${KAKAO_API_KEY}
-      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENROUTER=${OPENROUTER}
+      - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - KAKAO_API_KEY=${KAKAO_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     ports:
       - 8000:8000
-    tty: true
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000
+
     
 
   # mysql:
