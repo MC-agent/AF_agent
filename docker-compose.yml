@@ -88,11 +88,9 @@ services:
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
       - KAKAO_API_KEY=${KAKAO_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-    volumes:
-      - .:/app
-    tty: true
     ports:
       - 8000:3000
+    tty: true
     
 
   # mysql:
