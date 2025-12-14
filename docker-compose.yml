@@ -1,9 +1,4 @@
 services:
-  app:
-    image: python:3.12-slim
-    volumes:
-      - .:/home
-    tty: true
   etcd:
     container_name: milvus-etcd-name
     image: quay.io/coreos/etcd:v3.5.18
@@ -63,8 +58,40 @@ services:
     depends_on:
       - "etcd"
       - "minio"
+
+  # Attu - Milvus GUI 관리 도구
   attu:
-    image: zilliz/attu:v2.6
+    container_name: milvus-attu
+    image: zilliz/attu:latest
+    environment:
+      MILVUS_URL: standalone:19530
+    ports:
+      - "8001:3000"
+    depends_on:
+      - standalone
+
+  # 여기부턴 python app 부분
+  app:
+    image: ${APP_IMAGE:-af_agent_local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: af_app
+    depends_on:
+      - standalone              # Milvus 준비되면 app 시작
+    environment:
+      - MILVUS_URI=http://standalone:19530
+      - OPENROUTER=${OPENROUTER}
+      - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - KAKAO_API_KEY=${KAKAO_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    volumes:
+      - .:/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
     ports:
       - 8000:3000
 
