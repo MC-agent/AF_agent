@@ -60,15 +60,15 @@ services:
       - "minio"
 
   # Attu - Milvus GUI 관리 도구
-  attu:
-    container_name: milvus-attu
-    image: zilliz/attu:latest
-    environment:
-      MILVUS_URL: standalone:19530
-    ports:
-      - "8001:3000"
-    depends_on:
-      - standalone
+  # attu:
+  #   container_name: milvus-attu
+  #   image: zilliz/attu:latest
+  #   environment:
+  #     MILVUS_URL: standalone:19530
+  #   ports:
+  #     - "8001:3000"
+  #   depends_on:
+  #     - standalone
 
   # 여기부턴 python app 부분
   app:
@@ -95,22 +95,22 @@ services:
     ports:
       - 8000:3000
 
-  mysql:
-    image: mysql:8.0
-    container_name: af-local-mysql
-    ports:
-      - "3306:3306"
-    volumes:
-      - ".docker/af-local-mysql:/var/lib/mysql"
-    environment:
-      - MYSQL_ROOT_PASSWORD=rPfksgnfkdl1212!
-      - MYSQL_USER=admin
-      - MYSQL_PASSWORD=rPfksgnfkdl1212!
-      - MYSQL_DATABASE=af_database
-    healthcheck:
-      test: ["CMD", "mysqladmin", "-uadmin", "-prPfksgnfkdl1212!", "ping", "-h", "localhost"]
-      timeout: 50s
-      retries: 10
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: af-local-mysql
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - ".docker/af-local-mysql:/var/lib/mysql"
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=rPfksgnfkdl1212!
+  #     - MYSQL_USER=admin
+  #     - MYSQL_PASSWORD=rPfksgnfkdl1212!
+  #     - MYSQL_DATABASE=af_database
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "-uadmin", "-prPfksgnfkdl1212!", "ping", "-h", "localhost"]
+  #     timeout: 50s
+  #     retries: 10
 
 networks:
   default:
