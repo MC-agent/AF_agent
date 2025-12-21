@@ -7,8 +7,6 @@ services:
        MILVUS_URL: standalone:19530
      ports:
        - "8001:3000"
-     depends_on:
-       - standalone
 networks:
   default:
     name: milvus
