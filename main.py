@@ -3,18 +3,17 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 from src.agents.translate_agent import agent
-from src.routers import crawl, milvus
+from src.routers import pipeline
 
 # FastAPI app
 app = FastAPI(
     title="AF Agent API",
-    description="Translation Agent, Crawling, and Milvus API Server",
+    description="Translation Agent and Integrated Pipeline API Server",
     version="1.0.0"
 )
 
 # 라우터 등록
-app.include_router(crawl.router)
-app.include_router(milvus.router)
+app.include_router(pipeline.router)
 
 # Request model
 class TranslateRequest(BaseModel):
