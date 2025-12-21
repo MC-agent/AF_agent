@@ -91,25 +91,6 @@ services:
     ports:
       - 8000:8000
 
-    
-
-  # mysql:
-  #   image: mysql:8.0
-  #   container_name: af-local-mysql
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - ".docker/af-local-mysql:/var/lib/mysql"
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=rPfksgnfkdl1212!
-  #     - MYSQL_USER=admin
-  #     - MYSQL_PASSWORD=rPfksgnfkdl1212!
-  #     - MYSQL_DATABASE=af_database
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "-uadmin", "-prPfksgnfkdl1212!", "ping", "-h", "localhost"]
-  #     timeout: 50s
-  #     retries: 10
-
 networks:
   default:
     name: milvus
