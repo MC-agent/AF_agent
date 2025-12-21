@@ -87,6 +87,41 @@ class PipelineStatusResponse(BaseModel):
     errors: list
 
 
+class UploadCrawledDataRequest(BaseModel):
+    """로컬에서 크롤링한 데이터를 서버로 전송"""
+    place_type: str = Field(..., description="'accommodation' 또는 'restaurant'")
+    places: List[Dict] = Field(..., description="크롤링된 장소 데이터 리스트")
+    recreate_collection: bool = Field(default=False, description="컬렉션 재생성 여부")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "place_type": "restaurant",
+                "places": [
+                    {
+                        "place_id": "11463001",
+                        "basic_info": {"name": "맛집", "category": "음식점"},
+                        "home": {},
+                        "menu": {},
+                        "review": {},
+                        "blog_review": {},
+                        "photo": {},
+                        "location": {}
+                    }
+                ],
+                "recreate_collection": False
+            }
+        }
+
+
+class UploadCrawledDataResponse(BaseModel):
+    message: str
+    place_type: str
+    total_uploaded: int
+    inserted_count: int
+    errors: List[str]
+
+
 def search_places_with_kakao(
     search_queries: List[str],
     category_code: str,
@@ -473,3 +508,120 @@ async def get_pipeline_status():
         inserted_count=pipeline_status["inserted_count"],
         errors=pipeline_status["errors"]
     )
+
+
+@router.post("/upload", response_model=UploadCrawledDataResponse)
+async def upload_crawled_data(request: UploadCrawledDataRequest):
+    """
+    로컬에서 크롤링한 JSON 데이터를 서버로 업로드하여 Milvus에 저장
+
+    - **place_type**: 'accommodation' 또는 'restaurant'
+    - **places**: 크롤링된 장소 데이터 리스트
+    - **recreate_collection**: True면 기존 컬렉션 삭제 후 재생성
+
+    ## 사용 예시:
+    로컬에서 크롤링 후:
+    ```python
+    import requests
+    with open('crawled_data.json', 'r') as f:
+        data = json.load(f)
+
+    response = requests.post(
+        'http://your-server:8000/pipeline/upload',
+        json={
+            'place_type': 'restaurant',
+            'places': data,
+            'recreate_collection': False
+        }
+    )
+    ```
+    """
+    if request.place_type not in ["accommodation", "restaurant"]:
+        raise HTTPException(
+            status_code=400,
+            detail="place_type must be 'accommodation' or 'restaurant'"
+        )
+
+    if not request.places:
+        raise HTTPException(
+            status_code=400,
+            detail="places list cannot be empty"
+        )
+
+    errors = []
+    inserted_count = 0
+
+    try:
+        # Milvus 클라이언트 생성 및 컬렉션 생성
+        print(f"Connecting to Milvus: {MILVUS_URI}")
+        milvus_client = MilvusClient(uri=MILVUS_URI)
+        create_collection(milvus_client, recreate=request.recreate_collection)
+
+        # 데이터 준비
+        data_to_insert = []
+
+        for idx, place in enumerate(request.places, 1):
+            try:
+                place_id = place.get('place_id', '')
+                basic_info = place.get('basic_info', {})
+                home = place.get('home', {})
+
+                # 텍스트 컨텐츠 생성
+                text_content = create_text_content(place)
+
+                # OpenAI 임베딩 생성
+                response = openai_client.embeddings.create(
+                    input=text_content,
+                    model=EMBEDDING_MODEL
+                )
+                embedding = response.data[0].embedding
+
+                # 데이터 레코드
+                record = {
+                    "id": f"{request.place_type}_{place_id}",
+                    "place_id": place_id,
+                    "name": basic_info.get('name', ''),
+                    "category": basic_info.get('category', ''),
+                    "place_type": request.place_type,
+                    "rating": basic_info.get('rating', ''),
+                    "address": home.get('address_detail', ''),
+                    "text_content": text_content[:65535],
+                    "full_data": json.dumps(place, ensure_ascii=False)[:65535],
+                    "embedding": embedding
+                }
+
+                data_to_insert.append(record)
+                print(f"Prepared embedding {idx}/{len(request.places)}: {basic_info.get('name', '')}")
+
+            except Exception as e:
+                error_msg = f"Failed to process {place.get('place_id', 'unknown')}: {str(e)}"
+                print(error_msg)
+                errors.append(error_msg)
+                continue
+
+        # Milvus에 일괄 삽입
+        if data_to_insert:
+            try:
+                milvus_client.insert(collection_name=COLLECTION_NAME, data=data_to_insert)
+                inserted_count = len(data_to_insert)
+                print(f"Inserted {inserted_count} records to Milvus")
+            except Exception as e:
+                error_msg = f"Failed to insert data to Milvus: {str(e)}"
+                print(error_msg)
+                errors.append(error_msg)
+                raise HTTPException(status_code=500, detail=error_msg)
+
+        return UploadCrawledDataResponse(
+            message=f"Successfully uploaded and inserted {inserted_count} places to Milvus",
+            place_type=request.place_type,
+            total_uploaded=len(request.places),
+            inserted_count=inserted_count,
+            errors=errors
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        error_msg = f"Upload failed: {str(e)}"
+        print(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
