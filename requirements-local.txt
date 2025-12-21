@@ -1,0 +1,8 @@
+# 로컬 개발 환경 전용 requirements
+# 서버에는 설치하지 않는 무거운 의존성들
+
+# 서버용 requirements 먼저 설치
+-r requirements.txt
+
+# 로컬 크롤링용 (Playwright + 브라우저)
+playwright>=1.40.0
