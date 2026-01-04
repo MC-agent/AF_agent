@@ -91,7 +91,7 @@ jobs:
         envs: GITHUB_SHA,GITHUB_REPOSITORY
         script_stop: true
         script: |
-          set -Eeuo pipefail
+       
           set -x   # 어떤 명령이 실행되는지 로그에 다 찍힘 (디버깅용)
   
           # --- 이미지 태그 계산 ---
