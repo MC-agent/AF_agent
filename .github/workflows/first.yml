@@ -133,8 +133,7 @@ jobs:
           git checkout main
     
           sudo docker pull "$IMAGE"
-
-          cd /opt/af-agent
+          
           echo "APP_IMAGE=$IMAGE" > .env
           
           sudo docker compose down --remove-orphans || true
