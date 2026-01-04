@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import uvicorn
 from src.agents.translate_agent import agent
 from src.routers import pipeline, chat
-from src.database.mysql import db
+from src.database.mysql import init_db
 
 # FastAPI app
 app = FastAPI(
@@ -38,17 +38,10 @@ class TranslateResponse(BaseModel):
 async def startup_event():
     """앱 시작 시 실행"""
     try:
-        db.connect()
-        db.init_tables() # users, chats, messages 테이블 생성
+        init_db()  # users, chats, messages 테이블 생성
         print("✅ 데이터베이스 초기화 완료")
     except Exception as e:
         print(f"⚠️ 데이터베이스 초기화 실패: {e}")
-
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    """앱 종료 시 실행"""
-    db.disconnect()
 
 # Health check endpoints
 @app.get("/")

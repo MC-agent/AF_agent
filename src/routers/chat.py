@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, HTTPException, Path
+from fastapi import APIRouter, HTTPException, Path, Depends
+from sqlalchemy.orm import Session
 from src.schemas.chat import (
     MessageCreate,
     MessageResponse,
@@ -8,7 +9,8 @@ from src.schemas.chat import (
     ChatMessageResponse,
     MessageRole
 )
-from src.database.mysql import db
+from src.database.mysql import get_db
+from src.database.models import Chat, Message, User
 from datetime import datetime
 from typing import List
 
@@ -18,7 +20,7 @@ router = APIRouter(
 )
 
 @router.post("", response_model=ChatResponse)
-async def create_chat(chat: ChatCreate):
+async def create_chat(chat: ChatCreate, db: Session = Depends(get_db)):
     """
     새로운 채팅 생성
 
@@ -26,43 +28,36 @@ async def create_chat(chat: ChatCreate):
     - **title**: 채팅 제목 (선택사항)
     """
     try:
-        query = """
-            INSERT INTO chats (user_id, title)
-            VALUES (%s, %s)
-        """
-        params = (chat.user_id, chat.title or "새 채팅")
+        # 새 채팅 생성
+        new_chat = Chat(
+            user_id=chat.user_id,
+            title=chat.title or "새 채팅"
+        )
+        db.add(new_chat)
+        db.commit()
+        db.refresh(new_chat)
 
-        with db.get_cursor() as cursor:
-            cursor.execute(query, params)
-            chat_id = cursor.lastrowid
-
-            # 생성된 채팅 정보 조회
-            cursor.execute("SELECT * FROM chats WHERE id = %s", (chat_id,))
-            result = cursor.fetchone()
-
-        return ChatResponse(**result)
+        return new_chat
 
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"채팅 생성 실패: {str(e)}")
 
 
 @router.get("/{chat_id}", response_model=ChatResponse)
-async def get_chat(chat_id: int = Path(..., description="채팅 ID")):
+async def get_chat(chat_id: int = Path(..., description="채팅 ID"), db: Session = Depends(get_db)):
     """
     채팅 정보 조회
 
     - **chat_id**: 조회할 채팅 ID
     """
     try:
-        query = "SELECT * FROM chats WHERE id = %s"
-        with db.get_cursor() as cursor:
-            cursor.execute(query, (chat_id,))
-            result = cursor.fetchone()
+        chat = db.query(Chat).filter(Chat.id == chat_id).first()
 
-        if not result:
+        if not chat:
             raise HTTPException(status_code=404, detail="채팅을 찾을 수 없습니다")
 
-        return ChatResponse(**result)
+        return chat
 
     except HTTPException:
         raise
@@ -71,23 +66,18 @@ async def get_chat(chat_id: int = Path(..., description="채팅 ID")):
 
 
 @router.get("/{chat_id}/messages", response_model=List[MessageResponse])
-async def get_messages(chat_id: int = Path(..., description="채팅 ID")):
+async def get_messages(chat_id: int = Path(..., description="채팅 ID"), db: Session = Depends(get_db)):
     """
     채팅의 모든 메시지 조회
 
     - **chat_id**: 채팅 ID
     """
     try:
-        query = """
-            SELECT * FROM messages
-            WHERE chat_id = %s
-            ORDER BY created_at ASC
-        """
-        with db.get_cursor() as cursor:
-            cursor.execute(query, (chat_id,))
-            results = cursor.fetchall()
+        messages = db.query(Message).filter(
+            Message.chat_id == chat_id
+        ).order_by(Message.created_at.asc()).all()
 
-        return [MessageResponse(**row) for row in results]
+        return messages
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"메시지 조회 실패: {str(e)}")
@@ -96,7 +86,8 @@ async def get_messages(chat_id: int = Path(..., description="채팅 ID")):
 @router.post("/{chat_id}/messages", response_model=ChatMessageResponse)
 async def send_message(
     chat_id: int = Path(..., description="채팅 ID"),
-    message: MessageCreate = None
+    message: MessageCreate = None,
+    db: Session = Depends(get_db)
 ):
     """
     메시지 전송 (간단 버전)
@@ -114,60 +105,59 @@ async def send_message(
     """
     try:
         # 1. 사용자 메시지 저장
-        user_message_query = """
-            INSERT INTO messages (chat_id, role, content)
-            VALUES (%s, %s, %s)
-        """
+        user_message = Message(
+            chat_id=chat_id,
+            role=MessageRole.USER,
+            content=message.content
+        )
+        db.add(user_message)
+        db.commit()
+        db.refresh(user_message)
 
-        with db.get_cursor() as cursor:
-            # 사용자 메시지 저장
-            cursor.execute(user_message_query, (chat_id, MessageRole.USER.value, message.content))
-            user_message_id = cursor.lastrowid
+        # 2. AI 응답 생성 (현재는 간단한 응답)
+        # TODO: 여기에 RAG 파이프라인 추가
+        ai_response = f"'{message.content}'에 대한 응답입니다. (향후 RAG 파이프라인 추가 예정)"
 
-            # 저장된 사용자 메시지 조회
-            cursor.execute("SELECT * FROM messages WHERE id = %s", (user_message_id,))
-            user_msg_result = cursor.fetchone()
-
-            # 2. AI 응답 생성 (현재는 간단한 응답)
-            # TODO: 여기에 RAG 파이프라인 추가
-            ai_response = f"'{message.content}'에 대한 응답입니다. (향후 RAG 파이프라인 추가 예정)"
-
-            # AI 메시지 저장
-            cursor.execute(user_message_query, (chat_id, MessageRole.ASSISTANT.value, ai_response))
-            ai_message_id = cursor.lastrowid
-
-            # 저장된 AI 메시지 조회
-            cursor.execute("SELECT * FROM messages WHERE id = %s", (ai_message_id,))
-            ai_msg_result = cursor.fetchone()
+        # AI 메시지 저장
+        ai_message = Message(
+            chat_id=chat_id,
+            role=MessageRole.ASSISTANT,
+            content=ai_response
+        )
+        db.add(ai_message)
+        db.commit()
+        db.refresh(ai_message)
 
         return ChatMessageResponse(
-            user_message=MessageResponse(**user_msg_result),
-            ai_message=MessageResponse(**ai_msg_result)
+            user_message=user_message,
+            ai_message=ai_message
         )
 
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"메시지 전송 실패: {str(e)}")
 
 
 @router.delete("/{chat_id}")
-async def delete_chat(chat_id: int = Path(..., description="채팅 ID")):
+async def delete_chat(chat_id: int = Path(..., description="채팅 ID"), db: Session = Depends(get_db)):
     """
     채팅 삭제
 
     - **chat_id**: 삭제할 채팅 ID
     """
     try:
-        query = "DELETE FROM chats WHERE id = %s"
-        with db.get_cursor() as cursor:
-            cursor.execute(query, (chat_id,))
-            affected_rows = cursor.rowcount
+        chat = db.query(Chat).filter(Chat.id == chat_id).first()
 
-        if affected_rows == 0:
+        if not chat:
             raise HTTPException(status_code=404, detail="채팅을 찾을 수 없습니다")
+
+        db.delete(chat)
+        db.commit()
 
         return {"message": "채팅이 삭제되었습니다", "chat_id": chat_id}
 
     except HTTPException:
         raise
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=f"채팅 삭제 실패: {str(e)}")

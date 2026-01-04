@@ -29,6 +29,7 @@ class MessageResponse(BaseModel):
     created_at: datetime
 
     class Config:
+        from_attributes = True  # Pydantic v2: ORM 모드 활성화
         json_schema_extra = {
             "example": {
                 "id": 1,
@@ -61,6 +62,7 @@ class ChatResponse(BaseModel):
     updated_at: datetime
 
     class Config:
+        from_attributes = True  # Pydantic v2: ORM 모드 활성화
         json_schema_extra = {
             "example": {
                 "id": 1,

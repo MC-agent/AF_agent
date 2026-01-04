@@ -36,10 +36,11 @@ tmp/
 # 환경 변수 / 시크릿
 # ----------------------------
 .env
-.env.*
-*.env
 *.pem
 *.key
+
+# .env.example은 git에 포함 (템플릿 용도)
+!.env.example
 
 # ----------------------------
 # Docker / Milvus / MinIO / Etcd 데이터
