@@ -32,7 +32,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}
+          images: ghcr.io/${{ toLower(github.repository_owner) }}/${{ env.IMAGE_NAME }}
           tags: | 
             type=raw,value=sha-${{ github.sha }}
             type=ref,event=branch
@@ -144,10 +144,7 @@ jobs:
           git checkout main
   
           # --- 최신 이미지 pull ---
-          sudo docker pull "$IMAGE"
-  
-          # docker-compose.yml 안에서 image: ${APP_IMAGE} 라고 쓴다고 가정
-          export APP_IMAGE="$IMAGE"
+          sudo docker pull ghcr.io/<owner-lower>/af_agent:sha-<sha>
   
           # --- 기존 컨테이너 종료 후 새로 띄우기 ---
           # docker down X (없는 명령) → docker compose down 으로 변경
