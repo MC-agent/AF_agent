@@ -76,8 +76,36 @@ services:
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
       - KAKAO_API_KEY=${KAKAO_API_KEY}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=3306
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
     ports:
       - 8000:8000
+
+    
+
+  # ===================================
+  # MySQL (로컬 개발용)
+  # AWS RDS 사용 시 주석처리
+  # ===================================
+  # mysql:
+  #   image: mysql:8.0
+  #   container_name: af-local-mysql
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - ".docker/af-local-mysql:/var/lib/mysql"
+  #   environment:
+  #     - MYSQL_ROOT_PASSWORD=rPfksgnfkdl1212!
+  #     - MYSQL_USER=admin
+  #     - MYSQL_PASSWORD=rPfksgnfkdl1212!
+  #     - MYSQL_DATABASE=af_database
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "-uadmin", "-prPfksgnfkdl1212!", "ping", "-h", "localhost"]
+  #     timeout: 50s
+  #     retries: 10
 
 networks:
   default:
