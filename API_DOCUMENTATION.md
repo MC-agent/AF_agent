@@ -27,7 +27,8 @@
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"  // 최소 8자
+  "password": "password123",  // 최소 8자
+  "name": "홍길동"  // 필수
 }
 ```
 
@@ -36,20 +37,20 @@
 {
   "id": 1,
   "email": "user@example.com",
-  "name": null,
+  "name": "홍길동",
   "created_at": "2024-01-04T12:00:00"
 }
 ```
 
 #### 에러
 - `400`: 이메일이 이미 존재
-- `422`: 이메일 형식 오류 또는 비밀번호가 8자 미만
+- `422`: 이메일 형식 오류, 비밀번호가 8자 미만, 또는 name이 누락됨
 - `500`: 서버 오류
 
 ---
 
 ### 2. 로그인
-사용자 인증 후 JWT 토큰을 발급합니다.
+사용자 인증 후 JWT 토큰을 발급합니다. 선택적으로 사용자 이름을 전달하면 사용자 정보가 업데이트됩니다.
 
 - **URL**: `/api/auth/login`
 - **Method**: `POST`
@@ -59,7 +60,8 @@
 ```json
 {
   "email": "user@example.com",
-  "password": "password123"
+  "password": "password123",
+  "name": "홍길동"  // 선택사항, 제공 시 사용자 이름 업데이트
 }
 ```
 
@@ -123,7 +125,7 @@
 {
   "id": 1,
   "email": "user@example.com",
-  "name": null,
+  "name": "홍길동",
   "created_at": "2024-01-04T12:00:00"
 }
 ```

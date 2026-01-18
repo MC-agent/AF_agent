@@ -7,12 +7,14 @@ class UserSignup(BaseModel):
     """회원가입 요청"""
     email: EmailStr = Field(..., description="사용자 이메일")
     password: str = Field(..., min_length=8, description="비밀번호 (최소 8자)")
+    name: str = Field(..., min_length=1, description="사용자 이름")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "email": "user@example.com",
-                "password": "password123"
+                "password": "password123",
+                "name": "홍길동"
             }
         }
 
@@ -20,12 +22,14 @@ class UserLogin(BaseModel):
     """로그인 요청"""
     email: EmailStr = Field(..., description="사용자 이메일")
     password: str = Field(..., description="비밀번호")
+    name: Optional[str] = Field(None, description="사용자 이름")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "email": "user@example.com",
-                "password": "password123"
+                "password": "password123",
+                "name": "홍길동"
             }
         }
 

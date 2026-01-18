@@ -39,7 +39,8 @@ async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
         # 새 사용자 생성
         new_user = User(
             email=user_data.email,
-            password=hashed_password
+            password=hashed_password,
+            name=user_data.name
         )
         db.add(new_user)
         db.commit()
@@ -84,6 +85,12 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
+        # 사용자 이름 업데이트 (제공된 경우)
+        if user_data.name:
+            user.name = user_data.name
+            db.commit()
+            db.refresh(user)
+            
         # JWT 토큰 생성
         access_token = create_access_token(data={"sub": user.id})
 
