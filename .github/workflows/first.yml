@@ -142,6 +142,7 @@ jobs:
           LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
           LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
           LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
+          KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           SECRET_KEY=${{ secrets.SECRET_KEY }}
           MYSQL_HOST=${{ secrets.MYSQL_HOST }}
