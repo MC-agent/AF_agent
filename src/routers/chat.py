@@ -7,6 +7,7 @@ from src.schemas.chat import (
     ChatCreate,
     ChatResponse,
     ChatMessageResponse,
+    ChatTitleUpdate,
     MessageRole
 )
 from src.database.mysql import get_db
@@ -136,6 +137,38 @@ async def send_message(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"메시지 전송 실패: {str(e)}")
+
+
+@router.patch("/{chat_id}/title", response_model=ChatResponse)
+async def update_chat_title(
+    chat_id: int = Path(..., description="채팅 ID"),
+    title_update: ChatTitleUpdate = None,
+    db: Session = Depends(get_db)
+):
+    """
+    채팅 제목 업데이트
+
+    - **chat_id**: 채팅 ID
+    - **title**: 새로운 채팅 제목
+    """
+    try:
+        chat = db.query(Chat).filter(Chat.id == chat_id).first()
+
+        if not chat:
+            raise HTTPException(status_code=404, detail="채팅을 찾을 수 없습니다")
+
+        # 제목 업데이트
+        chat.title = title_update.title
+        db.commit()
+        db.refresh(chat)
+
+        return chat
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"채팅 제목 업데이트 실패: {str(e)}")
 
 
 @router.delete("/{chat_id}")

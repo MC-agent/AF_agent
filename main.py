@@ -3,7 +3,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import uvicorn
 from src.agents.translate_agent import agent
-from src.routers import pipeline, chat
+from src.routers import pipeline, chat, auth
 from src.database.mysql import init_db
 
 # FastAPI app
@@ -14,7 +14,8 @@ app = FastAPI(
 )
 
 # 라우터 등록
-app.include_router(chat.router) # 채팅 API
+app.include_router(auth.router)  # 인증 API
+app.include_router(chat.router)  # 채팅 API
 app.include_router(pipeline.router)
 
 # Request model

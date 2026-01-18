@@ -97,3 +97,14 @@ class ChatMessageResponse(BaseModel):
                 }
             }
         }
+
+class ChatTitleUpdate(BaseModel):
+    """채팅 제목 업데이트 요청"""
+    title: str = Field(..., description="새로운 채팅 제목", min_length=1, max_length=255)
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "title": "강남 맛집 추천"
+            }
+        }
