@@ -42,13 +42,11 @@ class MessageResponse(BaseModel):
 
 class ChatCreate(BaseModel):
     """채팅 생성 요청"""
-    user_id: int = Field(..., description="사용자 ID")
     title: Optional[str] = Field(None, description="채팅 제목")
 
     class Config:
         json_schema_extra = {
             "example": {
-                "user_id": 1,
                 "title": "강남 맛집 추천"
             }
         }

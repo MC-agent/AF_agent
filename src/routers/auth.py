@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from src.schemas.auth import UserSignup, UserLogin, Token, UserResponse
 from src.database.mysql import get_db
 from src.database.models import User
-from src.utils.auth import (
-    get_password_hash,
-    verify_password,
-    create_access_token,
-    get_current_user
-)
+from src.utils.auth import get_current_user
+from src.services.auth_service import AuthService
 
 router = APIRouter(
     prefix="/api/auth",
@@ -24,38 +20,12 @@ async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
     - **email**: 사용자 이메일 (고유값)
     - **password**: 비밀번호 (최소 8자)
     """
-    try:
-        # 이메일 중복 확인
-        existing_user = db.query(User).filter(User.email == user_data.email).first()
-        if existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="이미 존재하는 이메일입니다"
-            )
-
-        # 비밀번호 해싱
-        hashed_password = get_password_hash(user_data.password)
-
-        # 새 사용자 생성
-        new_user = User(
-            email=user_data.email,
-            password=hashed_password,
-            name=user_data.name
-        )
-        db.add(new_user)
-        db.commit()
-        db.refresh(new_user)
-
-        return new_user
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"회원가입 실패: {str(e)}"
-        )
+    auth_service = AuthService(db)
+    return auth_service.signup(
+        email=user_data.email,
+        password=user_data.password,
+        name=user_data.name
+    )
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
@@ -67,47 +37,19 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
     반환: JWT 액세스 토큰
     """
-    try:
-        # 사용자 조회
-        user = db.query(User).filter(User.email == user_data.email).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="이메일 또는 비밀번호가 올바르지 않습니다",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+    auth_service = AuthService(db)
+    user, access_token = auth_service.login(
+        email=user_data.email,
+        password=user_data.password,
+        name=user_data.name
+    )
 
-        # 비밀번호 검증
-        if not verify_password(user_data.password, user.password):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="이메일 또는 비밀번호가 올바르지 않습니다",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-
-        # 사용자 이름 업데이트 (제공된 경우)
-        if user_data.name:
-            user.name = user_data.name
-            db.commit()
-            db.refresh(user)
-            
-        # JWT 토큰 생성
-        access_token = create_access_token(data={"sub": user.id})
-
-        return Token(
-            access_token=access_token,
-            token_type="bearer",
-            user_id=user.id,
-            email=user.email
-        )
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"로그인 실패: {str(e)}"
-        )
+    return Token(
+        access_token=access_token,
+        token_type="bearer",
+        user_id=user.id,
+        email=user.email
+    )
 
 @router.post("/logout")
 async def logout(current_user: User = Depends(get_current_user)):

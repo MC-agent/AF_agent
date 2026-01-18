@@ -133,9 +133,25 @@ jobs:
           git checkout main
     
           sudo docker pull "$IMAGE"
-          
-          echo "APP_IMAGE=$IMAGE" > .env
-        
+
+          cat > .env <<EOF
+          APP_IMAGE=$IMAGE
+          OPENROUTER=${{ secrets.OPENROUTER }}
+          OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
+          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
+          LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
+          LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
+          LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
+          KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
+          OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+          SECRET_KEY=${{ secrets.SECRET_KEY }}
+          MYSQL_HOST=${{ secrets.MYSQL_HOST }}
+          MYSQL_PORT=${{ secrets.MYSQL_PORT }}
+          MYSQL_USER=${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
+          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+          EOF
+
           sudo docker compose up -d
 
     
