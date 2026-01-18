@@ -43,7 +43,7 @@ tmp/
 !.env.example
 
 # ----------------------------
-# Docker / Milvus / MinIO / Etcd 데이터
+# Docker / Milvus / 데이터
 # ----------------------------
 volumes/
 volumes/**
