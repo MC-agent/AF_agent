@@ -136,6 +136,7 @@ jobs:
 
           cat > .env <<EOF
           APP_IMAGE=$IMAGE
+          MILVUS_URI=${{ secrets.MILVUS_URI }}
           OPENROUTER=${{ secrets.OPENROUTER }}
           OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
           OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
