@@ -76,46 +76,103 @@ def create_collection(client: MilvusClient):
     print(f"✅ 컬렉션 '{COLLECTION_NAME}' 생성 완료")
 
 
+def extract_place_features(place_data: Dict) -> str:
+    """LLM을 사용해 리뷰에서 장소의 감성/특징을 추출"""
+    basic_info = place_data.get('basic_info', {})
+    name = basic_info.get('name', '')
+    category = basic_info.get('category', '')
+
+    # 리뷰 수집 (최대 10개)
+    review_texts = []
+    reviews = place_data.get('review', {}).get('reviews', [])
+    for r in reviews[:10]:
+        content = r.get('content', '').strip()
+        if content and len(content) > 10:
+            review_texts.append(content)
+
+    # 블로그 리뷰 수집 (최대 5개)
+    blog_reviews = place_data.get('blog_review', {}).get('blog_reviews', [])
+    for b in blog_reviews[:5]:
+        title = b.get('title', '').strip()
+        content = b.get('content', '').strip()
+        if title:
+            review_texts.append(title)
+        if content:
+            review_texts.append(content[:300])
+
+    if not review_texts:
+        return ""
+
+    reviews_joined = "\n".join(f"- {r}" for r in review_texts)
+
+    prompt = f"""다음은 '{name}'({category}) 에 대한 리뷰들입니다.
+리뷰를 분석해서 이 장소의 특징을 한국어로 간결하게 서술해주세요.
+
+포함할 내용:
+- 분위기/인테리어 (예: 아늑함, 모던함, 캐주얼, 고급스러움, 따뜻함, 시끌벅적함)
+- 음식 특징 (예: 자극적, 담백함, 푸짐함, 정갈함)
+- 어떤 상황에 어울리는지 (예: 데이트, 가족 모임, 혼밥, 회식, 술자리)
+- 서비스/분위기 특징
+
+리뷰:
+{reviews_joined}
+
+특징 (3~5문장으로):"""
+
+    try:
+        response = openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            max_tokens=300,
+            temperature=0.3,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Feature extraction failed for {name}: {e}")
+        return ""
+
+
 def create_text_content(place_data: Dict) -> str:
-    """검색을 위한 텍스트 컨텐츠 생성"""
+    """검색을 위한 텍스트 컨텐츠 생성 (기본정보 + LLM 특징 추출 + 리뷰 원문)"""
     parts = []
 
-    # 기본 정보
+    # 1. 기본 정보
     basic_info = place_data.get('basic_info', {})
     if basic_info.get('name'):
         parts.append(f"가게명: {basic_info['name']}")
     if basic_info.get('category'):
         parts.append(f"카테고리: {basic_info['category']}")
 
-    # 주소
     home = place_data.get('home', {})
     if home.get('address_detail'):
         parts.append(f"주소: {home['address_detail']}")
-
-    # 서비스
     if home.get('services'):
         parts.append(f"서비스: {', '.join(home['services'])}")
 
-    # 메뉴
     menus = place_data.get('menu', {}).get('menus', [])
     if menus:
         menu_names = [m.get('name', '') for m in menus if m.get('name')]
         if menu_names:
-            parts.append(f"메뉴: {', '.join(menu_names[:5])}")  # 최대 5개
+            parts.append(f"메뉴: {', '.join(menu_names[:10])}")
 
-    # 리뷰 (최대 3개)
+    # 2. LLM으로 추출한 감성/특징
+    features = extract_place_features(place_data)
+    if features:
+        parts.append(f"특징: {features}")
+
+    # 3. 리뷰 원문 (더 많이, 더 길게)
     reviews = place_data.get('review', {}).get('reviews', [])
-    for i, review in enumerate(reviews[:3]):
-        if review.get('content'):
-            parts.append(f"리뷰{i+1}: {review['content']}")
+    for i, review in enumerate(reviews[:10]):
+        content = review.get('content', '').strip()
+        if content and len(content) > 10:
+            parts.append(f"리뷰{i+1}: {content[:200]}")
 
-    # 블로그 리뷰 (최대 3개)
     blog_reviews = place_data.get('blog_review', {}).get('blog_reviews', [])
-    for i, blog in enumerate(blog_reviews[:3]):
+    for i, blog in enumerate(blog_reviews[:5]):
         if blog.get('title'):
-            parts.append(f"블로그{i+1}: {blog['title']}")
+            parts.append(f"블로그제목{i+1}: {blog['title']}")
         if blog.get('content'):
-            parts.append(blog['content'][:100])  # 내용 일부만
+            parts.append(f"블로그{i+1}: {blog['content'][:200]}")
 
     return " | ".join(parts)
 
