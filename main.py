@@ -1,10 +1,37 @@
 # -*- coding: utf-8 -*-
-from fastapi import FastAPI, HTTPException
+import logging
+import logging.config
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import Response
 from pydantic import BaseModel
 import uvicorn
-from src.agents.translate_agent import agent
 from src.routers import pipeline, chat, auth
 from src.database.mysql import init_db
+from src.config import settings
+
+logging.config.dictConfig({
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s [%(levelname)s] %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        }
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        }
+    },
+    "root": {
+        "level": "INFO",
+        "handlers": ["console"],
+    },
+    "loggers": {
+        "src": {"level": "DEBUG", "handlers": ["console"], "propagate": False},
+    },
+})
 
 # FastAPI app
 app = FastAPI(
@@ -13,10 +40,19 @@ app = FastAPI(
     version="1.0.0"
 )
 
+@app.middleware("http")
+async def add_charset_utf8(request: Request, call_next):
+    response: Response = await call_next(request)
+    content_type = response.headers.get("content-type", "")
+    if content_type and "charset" not in content_type:
+        response.headers["content-type"] = content_type + "; charset=utf-8"
+    return response
+
 # 라우터 등록
 app.include_router(auth.router)  # 인증 API
 app.include_router(chat.router)  # 채팅 API
-app.include_router(pipeline.router)
+if settings.enable_pipeline_routes:
+    app.include_router(pipeline.router)
 
 # Request model
 class TranslateRequest(BaseModel):
@@ -63,6 +99,9 @@ async def translate(request: TranslateRequest):
     - Japanese input -> Japanese response
     """
     try:
+        # Lazy import
+        from src.agents.translate_agent import agent
+
         # Execute Agent
         result = agent.invoke({
             "messages": [{"role": "user", "content": request.text}]
