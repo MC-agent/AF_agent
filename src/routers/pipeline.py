@@ -2,6 +2,7 @@
 """
 카카오맵 검색 + 크롤링 + Milvus 삽입 완전 통합 파이프라인 API
 """
+import asyncio
 from typing import List, Dict
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
@@ -207,10 +208,11 @@ async def upload_crawled_data(request: UploadCrawledDataRequest):
         )
 
     try:
-        result = pipeline_service.upload_crawled_data(
-            place_type=request.place_type,
-            places=request.places,
-            recreate_collection=request.recreate_collection
+        result = await asyncio.to_thread(
+            pipeline_service.upload_crawled_data,
+            request.place_type,
+            request.places,
+            request.recreate_collection
         )
 
         return UploadCrawledDataResponse(
