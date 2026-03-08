@@ -2,6 +2,7 @@
 import logging
 import logging.config
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 import uvicorn
@@ -38,6 +39,21 @@ app = FastAPI(
     title="AF Agent API",
     description="Translation Agent and Integrated Pipeline API Server",
     version="1.0.0"
+)
+
+# =========================
+# CORS 설정 - 프론트엔드에서 백엔드 API 호출 허용
+# =========================
+app.add_middleware(
+    CORSMiddleware,
+    # 허용할 프론트엔드 주소 목록
+    allow_origins=[
+        "https://af-agent-frontend-ixun-dydulehx8-byoungjuchaes-projects.vercel.app",
+        "http://localhost:3000",      # 프론트 로컬 개발용
+    ],
+    allow_credentials=True,           # 쿠키/인증 헤더 허용
+    allow_methods=["*"],              # 모든 HTTP 메서드 허용 (GET, POST, PUT, DELETE 등)
+    allow_headers=["*"],              # 모든 헤더 허용 (Authorization 등)
 )
 
 @app.middleware("http")
