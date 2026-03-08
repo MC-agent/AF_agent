@@ -136,21 +136,20 @@ jobs:
 
           cat > .env <<EOF
           APP_IMAGE=$IMAGE
-          MILVUS_URI=${{ secrets.MILVUS_URI }}
+          PG_HOST=${{ secrets.PG_HOST }}
+          PG_PORT=${{ secrets.PG_PORT }}
+          PG_USER=${{ secrets.PG_USER }}
+          PG_PASSWORD=${{ secrets.PG_PASSWORD }}
+          PG_DATABASE=${{ secrets.PG_DATABASE }}
           OPENROUTER=${{ secrets.OPENROUTER }}
           OPENROUTER_API_BASE=${{ secrets.OPENROUTER_API_BASE }}
-          OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}
           LANGCHAIN_ENDPOINT=${{ secrets.LANGCHAIN_ENDPOINT }}
           LANGCHAIN_PROJECT=${{ secrets.LANGCHAIN_PROJECT }}
           LANGCHAIN_API_KEY=${{ secrets.LANGCHAIN_API_KEY }}
           KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           SECRET_KEY=${{ secrets.SECRET_KEY }}
-          MYSQL_HOST=${{ secrets.MYSQL_HOST }}
-          MYSQL_PORT=${{ secrets.MYSQL_PORT }}
-          MYSQL_USER=${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}
-          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
+          ENABLE_PIPELINE_ROUTES=true
           EOF
 
           sudo docker compose up -d

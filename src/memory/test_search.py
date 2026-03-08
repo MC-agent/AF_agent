@@ -1,93 +1,52 @@
 # -*- coding: utf-8 -*-
-"""
-Milvus 벡터 검색 테스트
-"""
-import sys
 import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+import sys
 
-import os
-import json
-from pymilvus import MilvusClient
 from openai import OpenAI
-from dotenv import load_dotenv
 
-# 환경 변수 로드
-load_dotenv()
+from src.config import settings
+from src.memory.vector_store import search_place_embeddings
 
-# Milvus 설정
-MILVUS_URI = os.getenv("MILVUS_URI", "http://localhost:19530")
-COLLECTION_NAME = "kakao_places"
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
 
-# OpenAI 클라이언트
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-EMBEDDING_MODEL = "text-embedding-3-small"
+client = OpenAI(api_key=settings.openai_api_key)
 
 
-def search_places(query: str, top_k: int = 3):
-    """벡터 유사도 검색"""
-
-    print(f"\n🔍 검색 쿼리: '{query}'")
+def search_places(query: str, top_k: int = 3) -> None:
+    print(f"\nQuery: {query}")
     print("=" * 80)
 
-    # Milvus 클라이언트
-    client = MilvusClient(uri=MILVUS_URI)
-
-    # OpenAI 임베딩 생성
-    response = openai_client.embeddings.create(
+    response = client.embeddings.create(
         input=query,
-        model=EMBEDDING_MODEL
+        model=settings.embedding_model,
     )
-    query_embedding = response.data[0].embedding
+    results = search_place_embeddings(response.data[0].embedding, top_k)
 
-    # 검색
-    results = client.search(
-        collection_name=COLLECTION_NAME,
-        data=[query_embedding],
-        limit=top_k,
-        output_fields=["place_id", "name", "category", "place_type", "rating", "address", "text_content"]
-    )
-
-    # 결과 출력
-    if not results or not results[0]:
-        print("❌ 검색 결과가 없습니다.")
+    if not results:
+        print("No results found.")
         return
 
-    print(f"\n✅ 상위 {len(results[0])}개 결과:\n")
-
-    for i, hit in enumerate(results[0], 1):
-        entity = hit['entity']
-        distance = hit['distance']
-
-        print(f"📍 {i}. {entity.get('name', 'N/A')}")
-        print(f"   카테고리: {entity.get('category', 'N/A')}")
-        print(f"   타입: {entity.get('place_type', 'N/A')}")
-        print(f"   평점: {entity.get('rating', 'N/A')}")
-        print(f"   주소: {entity.get('address', 'N/A')}")
-        print(f"   유사도: {distance:.4f}")
-        print(f"   내용: {entity.get('text_content', '')[:200]}...")
+    for index, hit in enumerate(results, start=1):
+        entity = hit["entity"]
+        print(f"{index}. {entity.get('name', 'N/A')}")
+        print(f"   category: {entity.get('category', 'N/A')}")
+        print(f"   type: {entity.get('place_type', 'N/A')}")
+        print(f"   rating: {entity.get('rating', 'N/A')}")
+        print(f"   address: {entity.get('address', 'N/A')}")
+        print(f"   distance: {hit['distance']:.4f}")
         print()
 
 
-def main():
-    print("=" * 80)
-    print("🔍 Milvus 벡터 검색 테스트")
-    print("=" * 80)
-
-    # 테스트 쿼리들
+def main() -> None:
     queries = [
-        "강남에 있는 호텔 추천해줘",
-        "무료 주차 가능한 숙소",
-        "중국 요리 맛집",
-        "닭갈비 먹을 수 있는 곳",
-        "가성비 좋은 한정식"
+        "recommend a hotel in gangnam",
+        "restaurant with parking",
+        "quiet cafe for a meeting",
     ]
 
     for query in queries:
         search_places(query, top_k=3)
-        print("\n" + "-" * 80)
-
-    print("\n✅ 테스트 완료!")
+        print("-" * 80)
 
 
 if __name__ == "__main__":

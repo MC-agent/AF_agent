@@ -99,7 +99,7 @@ async def send_message(
     현재는 간단한 응답만 반환합니다.
     향후 RAG 파이프라인과 연동 예정:
     1. Embedding 변환
-    2. Milvus 벡터 검색
+    2. pgvector 검색
     3. Kakao Map API 호출
     4. LLM(Claude/GPT)에 전달
     5. 자연스러운 답변 생성

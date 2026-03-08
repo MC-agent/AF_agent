@@ -2,36 +2,26 @@
 """
 RAG Service - Retrieval-Augmented Generation Pipeline
 
-Milvus 벡터 검색을 활용한 RAG 파이프라인을 구현합니다.
+pgvector 기반 벡터 검색을 활용한 RAG 파이프라인을 구현합니다.
 1. 사용자 쿼리 임베딩 (OpenAI text-embedding-3-small)
-2. Milvus kakao_places 컬렉션 검색
+2. pgvector place table 검색
 3. 검색 결과를 컨텍스트로 변환
 4. 시스템 지시사항 + 컨텍스트 + 대화 내역 + 사용자 질문으로 프롬프트 구성
 5. Claude (OpenRouter) 로 응답 생성
-6. Milvus 장애 시 LLM-only 폴백 지원
+6. 벡터 스토어 장애 시 LLM-only 폴백 지원
 """
 
 from typing import List, Optional
 import logging
 
 from openai import OpenAI
-from pymilvus import MilvusClient
 from langchain_openai import ChatOpenAI
 
 from src.config import settings
 from src.database.models import Message
+from src.memory.vector_store import search_place_embeddings
 
 logger = logging.getLogger(__name__)
-
-# Milvus collection and output field constants
-_COLLECTION_NAME = "kakao_places"
-_OUTPUT_FIELDS = [
-    "place_id",
-    "place_type",
-    "name",
-    "address",
-    "rating"
-]
 
 # Maximum number of chat history messages to include in prompt
 _MAX_HISTORY_MESSAGES = 10
@@ -45,14 +35,13 @@ class RagService:
     """
     RAG (Retrieval-Augmented Generation) 서비스.
 
-    OpenAI 임베딩, Milvus 벡터 검색, Claude LLM 을 조합하여
+    OpenAI 임베딩, pgvector 검색, Claude LLM 을 조합하여
     사용자 질의에 대한 장소 추천 응답을 생성합니다.
     모든 외부 클라이언트는 최초 사용 시점에 지연 초기화됩니다.
     """
 
     def __init__(self) -> None:
         self._openai_client: Optional[OpenAI] = None
-        self._milvus_client: Optional[MilvusClient] = None
         self._llm: Optional[ChatOpenAI] = None
 
     # ------------------------------------------------------------------
@@ -65,13 +54,6 @@ class RagService:
         if self._openai_client is None:
             self._openai_client = OpenAI(api_key=settings.openai_api_key)
         return self._openai_client
-
-    @property
-    def milvus_client(self) -> MilvusClient:
-        """Milvus 클라이언트. 최초 호출 시 생성."""
-        if self._milvus_client is None:
-            self._milvus_client = MilvusClient(uri=settings.milvus_uri)
-        return self._milvus_client
 
     @property
     def llm(self) -> ChatOpenAI:
@@ -104,7 +86,7 @@ class RagService:
             LLM 이 생성한 응답 문자열.
 
         Raises:
-            Exception: Milvus 장애 시 ``rag_fallback_enabled`` 가 False 이면
+            Exception: 벡터 스토어 장애 시 ``rag_fallback_enabled`` 가 False 이면
                        원본 예외를 다시 발생시킵니다.
         """
         # 1. Embed query
@@ -117,14 +99,14 @@ class RagService:
             # Fallback: use empty context with LLM-only response
             query_embedding = None
 
-        # 2. Search Milvus (with graceful fallback)
+        # 2. Search vector store (with graceful fallback)
         context = ""
         if query_embedding is not None:
             try:
-                results = self._search_milvus(query_embedding)
+                results = self._search_vector_store(query_embedding)
                 context = self._format_context(results)
             except Exception as exc:
-                logger.warning(f"Milvus search failed: {exc}")
+                logger.warning(f"Vector search failed: {exc}")
                 if not settings.rag_fallback_enabled:
                     raise
 
@@ -155,9 +137,9 @@ class RagService:
         )
         return response.data[0].embedding
 
-    def _search_milvus(self, query_embedding: List[float]) -> List[dict]:
+    def _search_vector_store(self, query_embedding: List[float]) -> List[dict]:
         """
-        Milvus kakao_places 컬렉션에서 유사도 검색을 수행합니다.
+        pgvector-backed place table에서 유사도 검색을 수행합니다.
 
         Args:
             query_embedding: 쿼리 임베딩 벡터.
@@ -165,20 +147,14 @@ class RagService:
         Returns:
             검색 결과 리스트 (각 항목은 distance + entity 포함).
         """
-        results = self.milvus_client.search(
-            collection_name=_COLLECTION_NAME,
-            data=[query_embedding],
-            limit=settings.rag_top_k,
-            output_fields=_OUTPUT_FIELDS,
-        )
-        return results[0] if results else []
+        return search_place_embeddings(query_embedding, settings.rag_top_k)
 
     def _format_context(self, results: List[dict]) -> str:
         """
         검색 결과를 프롬프트에 삽입할 컨텍스트 문자열로 변환합니다.
 
         Args:
-            results: Milvus 검색 결과 리스트.
+            results: 벡터 검색 결과 리스트.
 
         Returns:
             번호가 매겨진 장소 정보 문자열. 결과가 없으면 빈 문자열.

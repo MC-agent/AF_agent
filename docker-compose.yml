@@ -7,10 +7,9 @@ services:
     container_name: af_app
     environment:
       - ENABLE_PIPELINE_ROUTES=false
-      - MILVUS_URI=${MILVUS_URI:-http://standalone:19530}
+      - PGVECTOR_DATABASE_URL=${PGVECTOR_DATABASE_URL:-postgresql+psycopg2://postgres:postgres@pgvector:5432/af_vectors}
       - OPENROUTER=${OPENROUTER}
       - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
-      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
       - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
       - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
       - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
@@ -30,4 +29,4 @@ services:
 
 networks:
   default:
-    name: milvus
+    name: af_agent
