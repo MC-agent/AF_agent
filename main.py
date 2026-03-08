@@ -49,6 +49,7 @@ app.add_middleware(
     # 허용할 프론트엔드 주소 목록
     allow_origins=[
         "https://af-agent-frontend-ixun-dydulehx8-byoungjuchaes-projects.vercel.app",
+        "https://af-agent-frontend-19u7.vercel.app",
         "http://localhost:3000",      # 프론트 로컬 개발용
     ],
     allow_credentials=True,           # 쿠키/인증 헤더 허용
