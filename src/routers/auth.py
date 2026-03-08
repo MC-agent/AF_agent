@@ -12,7 +12,29 @@ router = APIRouter(
     tags=["auth"]
 )
 
-@router.post("/signup", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/signup",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        400: {
+            "description": "이미 존재하는 이메일",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "이미 존재하는 이메일입니다."}
+                }
+            },
+        },
+        500: {
+            "description": "서버 내부 오류",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "서버 오류가 발생했습니다."}
+                }
+            },
+        },
+    },
+)
 async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
     """
     회원가입

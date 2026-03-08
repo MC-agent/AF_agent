@@ -24,6 +24,8 @@ services:
       - MYSQL_DATABASE=${MYSQL_DATABASE}
     ports:
       - 8000:8000
+    volumes:
+      - .:/app
     tty: true
 
 networks:
