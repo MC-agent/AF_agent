@@ -7,7 +7,7 @@ from src.schemas.chat import (
     ChatResponse,
     ChatMessageResponse
 )
-from src.database.mysql import get_db
+from src.database.connection import get_db
 from src.database.models import User
 from src.utils.auth import get_current_user
 from src.services.chat_service import ChatService

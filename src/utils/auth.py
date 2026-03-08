@@ -8,7 +8,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
-from src.database.mysql import get_db
+from src.database.connection import get_db
 from src.database.models import User
 
 # .env 파일 로드

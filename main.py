@@ -6,7 +6,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 import uvicorn
 from src.routers import pipeline, chat, auth
-from src.database.mysql import init_db
+from src.database.connection import init_db
 from src.config import settings
 
 logging.config.dictConfig({

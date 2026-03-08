@@ -23,7 +23,7 @@ python main.py
 # or: uvicorn main:app --reload
 
 # Docker (full stack)
-docker-compose -f docker-compose.infra.yml up -d  # Start Milvus, MySQL, etc.
+docker-compose -f docker-compose.infra.yml up -d  # Start Milvus, etc.
 docker-compose up -d                               # Start app
 docker-compose logs -f app
 
@@ -40,7 +40,7 @@ No test framework or linter is currently configured.
 ```
 FastAPI Routes (routers/)
     └── Service Layer (services/)
-            ├── Repositories (repositories/) → MySQL via SQLAlchemy
+            ├── Repositories (repositories/) → PostgreSQL via SQLAlchemy
             ├── Agents (agents/)             → LangGraph ReAct agents
             ├── Crawlers (crawlers/)         → Kakao Map API + Playwright
             └── Memory (memory/)            → Milvus vector DB
@@ -49,10 +49,10 @@ FastAPI Routes (routers/)
 ### Key Data Flow
 
 **Chat Message Flow:**
-1. POST `/api/chats/{id}/messages` → saves user message to MySQL
+1. POST `/api/chats/{id}/messages` → saves user message to PostgreSQL
 2. RAG service: query → OpenAI embedding → Milvus similarity search → context
 3. Claude (via OpenRouter) generates response with context + chat history
-4. AI response saved to MySQL and returned
+4. AI response saved to PostgreSQL and returned
 
 **Data Pipeline Flow:**
 1. POST `/pipeline/run` → BackgroundTask
@@ -67,7 +67,7 @@ All settings are loaded from `.env` via Pydantic Settings. Key variables:
 - `MILVUS_URI` — Vector DB endpoint
 - `RAG_TOP_K` — Number of retrieved context items (default: 5)
 - `ENABLE_PIPELINE_ROUTES` — Toggle pipeline endpoints
-- MySQL connection: `MYSQL_HOST`, `MYSQL_USER`, `MYSQL_PASSWORD`, `MYSQL_DATABASE`
+- PostgreSQL connection: `PG_HOST`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE`, `PG_PORT`
 
 ### Authentication
 
@@ -77,7 +77,7 @@ JWT-based (7-day expiration, bcrypt password hashing). Protected endpoints requi
 
 | Service | Purpose |
 |---------|---------|
-| MySQL | User/Chat/Message persistence (SQLAlchemy ORM) |
+| PostgreSQL | User/Chat/Message persistence (SQLAlchemy ORM) |
 | Milvus | Vector store for place embeddings (`kakao_places` collection) |
 | OpenAI API | Embeddings (`text-embedding-3-small`) |
 | OpenRouter | LLM inference (Claude model) |

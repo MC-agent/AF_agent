@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from src.schemas.auth import UserSignup, UserLogin, Token, UserResponse
-from src.database.mysql import get_db
+from src.database.connection import get_db
 from src.database.models import User
 from src.utils.auth import get_current_user
 from src.services.auth_service import AuthService

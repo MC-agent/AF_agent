@@ -2,7 +2,7 @@
 from sqlalchemy import Column, Integer, String, Text, TIMESTAMP, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from src.database.mysql import Base
+from src.database.connection import Base
 import enum
 
 class MessageRole(str, enum.Enum):
