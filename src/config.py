@@ -21,14 +21,14 @@ class Settings(BaseSettings):
     deploy_env: str = "local"
     enable_pipeline_routes: bool = True
 
-    # Database Configuration - MySQL components
-    mysql_host: Optional[str] = None
-    mysql_port: Optional[str] = "3306"
-    mysql_user: Optional[str] = None
-    mysql_password: Optional[str] = None
-    mysql_database: Optional[str] = None
+    # Database Configuration - PostgreSQL components
+    pg_host: Optional[str] = None
+    pg_port: Optional[str] = "5432"
+    pg_user: Optional[str] = None
+    pg_password: Optional[str] = None
+    pg_database: Optional[str] = None
 
-    # Database URL (can be constructed from MySQL components or provided directly)
+    # Database URL (can be constructed from PostgreSQL components or provided directly)
     database_url: Optional[str] = None
 
     # External API Keys
@@ -70,11 +70,11 @@ class Settings(BaseSettings):
         if self.database_url:
             return self.database_url
 
-        if all([self.mysql_host, self.mysql_user, self.mysql_password, self.mysql_database]):
-            return f"mysql+pymysql://{self.mysql_user}:{self.mysql_password}@{self.mysql_host}:{self.mysql_port}/{self.mysql_database}"
+        if all([self.pg_host, self.pg_user, self.pg_password, self.pg_database]):
+            return f"postgresql+psycopg2://{self.pg_user}:{self.pg_password}@{self.pg_host}:{self.pg_port}/{self.pg_database}"
 
         raise ValueError(
-            "Either database_url or all MySQL components (host, user, password, database) must be provided"
+            "Either database_url or all PostgreSQL components (host, user, password, database) must be provided"
         )
 
 
