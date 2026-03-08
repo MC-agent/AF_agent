@@ -4,10 +4,8 @@ from sqlalchemy.orm import Session
 from src.schemas.chat import (
     MessageCreate,
     MessageResponse,
-    ChatCreate,
     ChatResponse,
-    ChatMessageResponse,
-    ChatTitleUpdate
+    ChatMessageResponse
 )
 from src.database.mysql import get_db
 from src.database.models import User
@@ -36,22 +34,17 @@ async def get_user_chats(
 
 @router.post("", response_model=ChatResponse)
 async def create_chat(
-    chat: ChatCreate,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """
     새로운 채팅 생성
 
-    - **title**: 채팅 제목 (선택사항, 기본값: "새 채팅")
-
-    현재 로그인한 사용자의 채팅으로 자동 생성됩니다.
+    body 없이 호출하면 됩니다.
+    제목은 첫 메시지를 보낼 때 AI가 자동 생성합니다.
     """
     chat_service = ChatService(db)
-    return chat_service.create_chat(
-        user_id=current_user.id,
-        title=chat.title
-    )
+    return chat_service.create_chat(user_id=current_user.id)
 
 
 @router.get("/{chat_id}", response_model=ChatResponse)
@@ -123,28 +116,6 @@ async def send_message(
         ai_message=result["ai_message"]
     )
 
-
-@router.patch("/{chat_id}/title", response_model=ChatResponse)
-async def update_chat_title(
-    chat_id: int = Path(..., description="채팅 ID"),
-    title_update: ChatTitleUpdate = None,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """
-    채팅 제목 업데이트
-
-    - **chat_id**: 채팅 ID
-    - **title**: 새로운 채팅 제목
-
-    자신이 소유한 채팅의 제목만 업데이트할 수 있습니다.
-    """
-    chat_service = ChatService(db)
-    return chat_service.update_title(
-        chat_id=chat_id,
-        user_id=current_user.id,
-        title=title_update.title
-    )
 
 
 @router.delete("/{chat_id}")

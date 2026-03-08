@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from src.repositories.chat_repository import ChatRepository
 from src.repositories.message_repository import MessageRepository
 from src.database.models import Chat, Message, MessageRole
+from src.services.rag_service import rag_service
 
 
 class ChatService:
@@ -22,6 +23,25 @@ class ChatService:
         self.db = db
         self.chat_repo = ChatRepository(db)
         self.message_repo = MessageRepository(db)
+
+    def _generate_title(self, content: str) -> str:
+        """
+        첫 메시지를 기반으로 채팅 제목을 자동 생성 (LLM 사용)
+        예: "강남 맛집 추천해줘" → "강남 맛집 추천"
+        """
+        try:
+            prompt = (
+                "다음 메시지를 보고 짧은 채팅 제목을 만들어주세요. "
+                "10자 이내, 따옴표 없이 제목만 답변하세요.\n\n"
+                f"메시지: {content}"
+            )
+            response = rag_service.llm.invoke(prompt)
+            title = response.content.strip().strip('"').strip("'")
+            # 혹시 너무 길면 30자로 자르기
+            return title[:30] if len(title) > 30 else title
+        except Exception:
+            # LLM 실패 시 메시지 앞부분을 제목으로 사용
+            return content[:20] + "..." if len(content) > 20 else content
 
     def _verify_ownership(self, chat: Chat, user_id: int) -> None:
         """
@@ -192,9 +212,10 @@ class ChatService:
                 content=content
             )
 
-            # 2. AI 응답 생성 (현재는 간단한 응답)
-            # TODO: 여기에 RAG 파이프라인 추가
-            ai_response = f"'{content}'에 대한 응답입니다. (향후 RAG 파이프라인 추가 예정)"
+            # 2. AI 응답 생성 (RAG 파이프라인)
+            # 이전 대화 내역을 가져와서 RAG에 넘겨줌 (AI가 맥락을 이해하도록)
+            chat_history = self.message_repo.get_all_by_chat(chat_id)
+            ai_response = rag_service.generate_response(content, chat_history)
 
             # 3. AI 메시지 저장
             ai_message = self.message_repo.create(
@@ -203,7 +224,13 @@ class ChatService:
                 content=ai_response
             )
 
-            # 4. 트랜잭션 커밋
+            # 4. 첫 메시지일 때 채팅 제목 자동 생성 (ChatGPT 방식)
+            # chat_history에 방금 저장한 user_message 1개만 있으면 = 첫 메시지
+            if len(chat_history) == 1:
+                title = self._generate_title(content)
+                self.chat_repo.update_title(chat, title)
+
+            # 5. 트랜잭션 커밋
             self.db.commit()
             self.db.refresh(user_message)
             self.db.refresh(ai_message)

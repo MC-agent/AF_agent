@@ -25,6 +25,22 @@ router = APIRouter(
                 }
             },
         },
+        422: {
+            "description": "유효성 검사 실패 (비밀번호 조건 미충족 등)",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": [
+                            {
+                                "loc": ["body", "password"],
+                                "msg": "Value error, 대문자를 1개 이상 포함해야 합니다",
+                                "type": "value_error"
+                            }
+                        ]
+                    }
+                }
+            },
+        },
         500: {
             "description": "서버 내부 오류",
             "content": {
@@ -39,8 +55,33 @@ async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
     """
     회원가입
 
-    - **email**: 사용자 이메일 (고유값)
-    - **password**: 비밀번호 (최소 8자)
+    ## 필수값 (Request Body)
+
+    | 필드 | 타입 | 설명 |
+    |------|------|------|
+    | email | string | 이메일 형식 (예: user@example.com) |
+    | password | string | 최소 8자, 대문자·소문자·숫자·특수기호 각 1개 이상 |
+    | name | string | 사용자 이름 (1자 이상) |
+
+    ## 에러 처리 가이드
+
+    **400 - 이메일 중복**
+    ```json
+    { "detail": "이미 존재하는 이메일입니다" }
+    ```
+    → `response.data.detail` 로 메시지 추출
+
+    **422 - 유효성 검사 실패 (비밀번호 조건 미충족 등)**
+    ```json
+    { "detail": [{ "loc": ["body", "password"], "msg": "Value error, 대문자를 1개 이상 포함해야 합니다", "type": "value_error" }] }
+    ```
+    → `response.data.detail[0].msg` 로 메시지 추출 (배열이므로 여러 개일 수 있음)
+
+    **500 - 서버 오류**
+    ```json
+    { "detail": "서버 오류가 발생했습니다." }
+    ```
+    → `response.data.detail` 로 메시지 추출
     """
     auth_service = AuthService(db)
     return auth_service.signup(
@@ -62,8 +103,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     user, access_token = auth_service.login(
         email=user_data.email,
-        password=user_data.password,
-        name=user_data.name
+        password=user_data.password
     )
 
     return Token(

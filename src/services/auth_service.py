@@ -75,14 +75,13 @@ class AuthService:
                 detail=f"회원가입 실패: {str(e)}"
             )
 
-    def login(self, email: str, password: str, name: Optional[str] = None) -> Tuple[User, str]:
+    def login(self, email: str, password: str) -> Tuple[User, str]:
         """
         로그인 비즈니스 로직
 
         Args:
             email: 사용자 이메일
             password: 비밀번호 (평문)
-            name: 업데이트할 사용자 이름 (선택사항)
 
         Returns:
             Tuple[User, str]: (사용자 객체, JWT 액세스 토큰)
@@ -108,14 +107,8 @@ class AuthService:
                     headers={"WWW-Authenticate": "Bearer"},
                 )
 
-            # 3. 사용자 이름 업데이트 (제공된 경우)
-            if name:
-                user = self.user_repo.update_name(user, name)
-                self.db.commit()
-                self.db.refresh(user)
-
-            # 4. JWT 토큰 생성
-            access_token = create_access_token(data={"sub": user.id})
+            # 3. JWT 토큰 생성
+            access_token = create_access_token(data={"sub": str(user.id)})
 
             return user, access_token
 
