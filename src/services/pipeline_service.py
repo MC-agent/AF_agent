@@ -77,7 +77,51 @@ class PipelineService:
         if recreate:
             reset_place_embeddings()
 
+    @staticmethod
+    def _first_text(*values: object) -> str:
+        for value in values:
+            if value is None:
+                continue
+            text = str(value).strip()
+            if text:
+                return text
+        return ""
+
+    def normalize_place_data(self, place_data: Dict) -> Dict:
+        normalized_place = dict(place_data)
+        basic_info = dict(place_data.get("basic_info") or {})
+        home = dict(place_data.get("home") or {})
+
+        if not basic_info.get("name"):
+            basic_info["name"] = self._first_text(
+                place_data.get("place_name"),
+                place_data.get("display_name"),
+                place_data.get("name"),
+            )
+        if not basic_info.get("category"):
+            basic_info["category"] = self._first_text(
+                place_data.get("category_name"),
+                place_data.get("category"),
+            )
+        if not basic_info.get("rating"):
+            basic_info["rating"] = self._first_text(
+                place_data.get("rating"),
+                place_data.get("score"),
+                place_data.get("review_score"),
+            )
+        if not home.get("address_detail"):
+            home["address_detail"] = self._first_text(
+                place_data.get("road_address_name"),
+                place_data.get("address_name"),
+                place_data.get("address"),
+            )
+
+        normalized_place["basic_info"] = basic_info
+        normalized_place["home"] = home
+        return normalized_place
+
     def create_text_content(self, place_data: Dict) -> str:
+        place_data = self.normalize_place_data(place_data)
         parts: List[str] = []
 
         basic_info = place_data.get("basic_info", {})
@@ -121,7 +165,17 @@ class PipelineService:
 
         for index, place in enumerate(places, start=1):
             try:
-                text_content = self.create_text_content(place)
+                normalized_place = self.normalize_place_data(place)
+                place_id = normalized_place.get("place_id") or normalized_place.get("id") or place.get("id") or "unknown"
+
+                text_content = self.create_text_content(normalized_place).strip()
+                if not text_content:
+                    self.pipeline_status["errors"].append(
+                        f"Skipped {place_id}: text_content is empty after normalization"
+                    )
+                    self.pipeline_status["insert_progress"] = index
+                    continue
+
                 response = self.openai_client.embeddings.create(
                     input=text_content,
                     model=self.EMBEDDING_MODEL,
@@ -129,11 +183,12 @@ class PipelineService:
                 embedding = response.data[0].embedding
 
                 enriched_place = dict(place)
+                enriched_place["basic_info"] = normalized_place.get("basic_info", {})
+                enriched_place["home"] = normalized_place.get("home", {})
                 enriched_place["text_content"] = text_content
                 records.append(build_place_record(place_type, enriched_place, embedding))
                 self.pipeline_status["insert_progress"] = index
             except Exception as exc:
-                place_id = place.get("place_id") or place.get("id") or "unknown"
                 self.pipeline_status["errors"].append(
                     f"Failed to embed {place_id}: {exc}"
                 )
@@ -147,7 +202,7 @@ class PipelineService:
         limit_per_query: int,
         crawl_limit: int,
         recreate_collection: bool,
-    ) -> None:
+    ) -> Dict:
         self.pipeline_status.update(
             {
                 "is_running": True,
@@ -228,6 +283,25 @@ class PipelineService:
             self.pipeline_status["errors"].append(f"Pipeline failed: {exc}")
         finally:
             self.pipeline_status["is_running"] = False
+
+        status = self.pipeline_status["current_phase"] or "failed"
+        message = (
+            "Pipeline completed successfully"
+            if status == "completed"
+            else "Pipeline failed"
+        )
+        if status == "completed" and self.pipeline_status["errors"]:
+            message = "Pipeline completed with errors"
+
+        return {
+            "message": message,
+            "category": category,
+            "total_places": self.pipeline_status["crawled_count"],
+            "crawled_count": self.pipeline_status["crawled_count"],
+            "inserted_count": self.pipeline_status["inserted_count"],
+            "status": status,
+            "errors": list(self.pipeline_status["errors"]),
+        }
 
     def upload_crawled_data(
         self,

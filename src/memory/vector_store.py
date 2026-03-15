@@ -33,6 +33,16 @@ class PlaceEmbedding(VectorBase):
     embedding: Mapped[List[float]] = mapped_column(Vector(EMBEDDING_DIM))
 
 
+def _first_text(*values: Any) -> str:
+    for value in values:
+        if value is None:
+            continue
+        text = str(value).strip()
+        if text:
+            return text
+    return ""
+
+
 vector_engine = create_engine(
     settings.get_pgvector_database_url(),
     pool_pre_ping=True,
@@ -76,12 +86,31 @@ def build_place_record(place_type: str, place: Dict[str, Any], embedding: List[f
     return {
         "id": f"{place_type}_{place_id}",
         "place_id": place_id,
-        "name": str(basic_info.get("name", "")),
-        "category": str(basic_info.get("category", "")),
+        "name": _first_text(
+            basic_info.get("name"),
+            place.get("place_name"),
+            place.get("display_name"),
+            place.get("name"),
+        ),
+        "category": _first_text(
+            basic_info.get("category"),
+            place.get("category_name"),
+            place.get("category"),
+        ),
         "place_type": place_type,
-        "rating": str(basic_info.get("rating", "")),
-        "address": str(home.get("address_detail", "")),
-        "text_content": str(place.get("text_content", "")),
+        "rating": _first_text(
+            basic_info.get("rating"),
+            place.get("rating"),
+            place.get("score"),
+            place.get("review_score"),
+        ),
+        "address": _first_text(
+            home.get("address_detail"),
+            place.get("road_address_name"),
+            place.get("address_name"),
+            place.get("address"),
+        ),
+        "text_content": _first_text(place.get("text_content")),
         "full_data": json.dumps(place, ensure_ascii=False),
         "embedding": embedding,
     }
@@ -120,12 +149,14 @@ def search_place_embeddings(query_embedding: List[float], limit: int = 5) -> Lis
     init_vector_db()
 
     with get_vector_session() as session:
-        distance = PlaceEmbedding.embedding.cosine_distance(query_embedding).label("distance")
+        distance_expr = PlaceEmbedding.embedding.cosine_distance(query_embedding)
+        distance = distance_expr.label("distance")
         stmt = (
             select(PlaceEmbedding, distance)
-            .order_by(distance)
-            .limit(limit)
         )
+        if settings.rag_max_distance is not None:
+            stmt = stmt.where(distance_expr <= settings.rag_max_distance)
+        stmt = stmt.order_by(distance_expr).limit(limit)
         rows = session.execute(stmt).all()
 
     results: List[Dict[str, Any]] = []

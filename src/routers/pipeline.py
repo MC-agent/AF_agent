@@ -2,7 +2,7 @@
 import asyncio
 from typing import Dict, List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from src.services.pipeline_service import PipelineService
@@ -23,7 +23,10 @@ class PipelineResponse(BaseModel):
     message: str
     category: str
     total_places: int
+    crawled_count: int
+    inserted_count: int
     status: str
+    errors: List[str]
 
 
 class PipelineStatusResponse(BaseModel):
@@ -56,7 +59,6 @@ class UploadCrawledDataResponse(BaseModel):
 @router.post("/run", response_model=PipelineResponse)
 async def run_crawl_insert_pipeline(
     request: PipelineRequest,
-    background_tasks: BackgroundTasks,
 ) -> PipelineResponse:
     status = pipeline_service.get_status()
     if status["is_running"]:
@@ -71,25 +73,19 @@ async def run_crawl_insert_pipeline(
     if not request.search_queries:
         raise HTTPException(status_code=400, detail="search_queries cannot be empty")
 
-    estimated_total = len(request.search_queries) * request.limit_per_query
-    if request.category == "all":
-        estimated_total *= 2
+    try:
+        result = await asyncio.to_thread(
+            pipeline_service.run_pipeline,
+            request.category,
+            request.search_queries,
+            request.limit_per_query,
+            request.crawl_limit,
+            request.recreate_collection,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    background_tasks.add_task(
-        pipeline_service.run_pipeline,
-        request.category,
-        request.search_queries,
-        request.limit_per_query,
-        request.crawl_limit,
-        request.recreate_collection,
-    )
-
-    return PipelineResponse(
-        message="Pipeline started successfully. Search, crawl, and insert will continue in the background.",
-        category=request.category,
-        total_places=min(estimated_total, request.crawl_limit),
-        status="running",
-    )
+    return PipelineResponse(**result)
 
 
 @router.get("/status", response_model=PipelineStatusResponse)
