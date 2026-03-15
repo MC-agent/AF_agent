@@ -4,6 +4,8 @@ import time
 from typing import Dict, List, Optional
 import json
 
+from src.utils.place_data import is_probable_address
+
 
 class KakaoMapCrawler:
     """카카오맵 가게 상세페이지 크롤러"""
@@ -102,8 +104,19 @@ class KakaoMapCrawler:
                 home_data['homepage'] = page.locator('.info_suggest a').first.get_attribute('href')
 
             # 주소 상세 정보
-            if page.locator('.txt_detail').count() > 0:
-                home_data['address_detail'] = page.locator('.txt_detail').first.inner_text()
+            detail_locator = page.locator('.txt_detail')
+            if detail_locator.count() > 0:
+                detail_texts = [
+                    text.strip()
+                    for text in detail_locator.all_inner_texts()
+                    if text and text.strip()
+                ]
+                address_detail = next(
+                    (text for text in detail_texts if is_probable_address(text)),
+                    "",
+                )
+                if address_detail:
+                    home_data['address_detail'] = address_detail
 
             # 서비스 태그
             if page.locator('.txt_svc').count() > 0:

@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
 
 from src.config import settings
+from src.utils.place_data import first_text, resolve_place_address
 
 EMBEDDING_DIM = 1536
 
@@ -31,16 +32,6 @@ class PlaceEmbedding(VectorBase):
     text_content: Mapped[str] = mapped_column(Text, default="")
     full_data: Mapped[str] = mapped_column(Text, default="")
     embedding: Mapped[List[float]] = mapped_column(Vector(EMBEDDING_DIM))
-
-
-def _first_text(*values: Any) -> str:
-    for value in values:
-        if value is None:
-            continue
-        text = str(value).strip()
-        if text:
-            return text
-    return ""
 
 
 vector_engine = create_engine(
@@ -80,37 +71,32 @@ def reset_place_embeddings() -> None:
 
 def build_place_record(place_type: str, place: Dict[str, Any], embedding: List[float]) -> Dict[str, Any]:
     basic_info = place.get("basic_info", {})
-    home = place.get("home", {})
     place_id = str(place.get("place_id") or place.get("id") or "")
+    resolved_address = resolve_place_address(place)
 
     return {
         "id": f"{place_type}_{place_id}",
         "place_id": place_id,
-        "name": _first_text(
+        "name": first_text(
             basic_info.get("name"),
             place.get("place_name"),
             place.get("display_name"),
             place.get("name"),
         ),
-        "category": _first_text(
+        "category": first_text(
             basic_info.get("category"),
             place.get("category_name"),
             place.get("category"),
         ),
         "place_type": place_type,
-        "rating": _first_text(
+        "rating": first_text(
             basic_info.get("rating"),
             place.get("rating"),
             place.get("score"),
             place.get("review_score"),
         ),
-        "address": _first_text(
-            home.get("address_detail"),
-            place.get("road_address_name"),
-            place.get("address_name"),
-            place.get("address"),
-        ),
-        "text_content": _first_text(place.get("text_content")),
+        "address": resolved_address,
+        "text_content": first_text(place.get("text_content")),
         "full_data": json.dumps(place, ensure_ascii=False),
         "embedding": embedding,
     }

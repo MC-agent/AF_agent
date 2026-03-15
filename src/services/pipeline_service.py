@@ -14,6 +14,7 @@ from src.memory.vector_store import (
     reset_place_embeddings,
     upsert_place_embeddings,
 )
+from src.utils.place_data import first_text, resolve_place_address
 
 
 class PipelineService:
@@ -77,47 +78,38 @@ class PipelineService:
         if recreate:
             reset_place_embeddings()
 
-    @staticmethod
-    def _first_text(*values: object) -> str:
-        for value in values:
-            if value is None:
-                continue
-            text = str(value).strip()
-            if text:
-                return text
-        return ""
-
     def normalize_place_data(self, place_data: Dict) -> Dict:
         normalized_place = dict(place_data)
         basic_info = dict(place_data.get("basic_info") or {})
         home = dict(place_data.get("home") or {})
+        location = dict(place_data.get("location") or {})
 
         if not basic_info.get("name"):
-            basic_info["name"] = self._first_text(
+            basic_info["name"] = first_text(
                 place_data.get("place_name"),
                 place_data.get("display_name"),
                 place_data.get("name"),
             )
         if not basic_info.get("category"):
-            basic_info["category"] = self._first_text(
+            basic_info["category"] = first_text(
                 place_data.get("category_name"),
                 place_data.get("category"),
             )
         if not basic_info.get("rating"):
-            basic_info["rating"] = self._first_text(
+            basic_info["rating"] = first_text(
                 place_data.get("rating"),
                 place_data.get("score"),
                 place_data.get("review_score"),
             )
-        if not home.get("address_detail"):
-            home["address_detail"] = self._first_text(
-                place_data.get("road_address_name"),
-                place_data.get("address_name"),
-                place_data.get("address"),
-            )
+        resolved_address = resolve_place_address(normalized_place)
+        if resolved_address:
+            home["address_detail"] = resolved_address
+            if not location.get("road_address"):
+                location["road_address"] = resolved_address
 
         normalized_place["basic_info"] = basic_info
         normalized_place["home"] = home
+        normalized_place["location"] = location
         return normalized_place
 
     def create_text_content(self, place_data: Dict) -> str:
