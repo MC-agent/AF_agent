@@ -11,7 +11,9 @@ from src.database.models import User
 from src.utils.auth import (
     get_password_hash,
     verify_password,
-    create_access_token
+    create_access_token,
+    create_refresh_token,
+    decode_access_token
 )
 
 
@@ -109,8 +111,9 @@ class AuthService:
 
             # 3. JWT 토큰 생성
             access_token = create_access_token(data={"sub": str(user.id)})
+            refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
-            return user, access_token
+            return user, access_token, refresh_token
 
         except HTTPException:
             raise
@@ -119,3 +122,39 @@ class AuthService:
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"로그인 실패: {str(e)}"
             )
+
+    def refresh(self, refresh_token: str) -> Tuple[str, str]:
+        """
+        리프레시 토큰으로 새 액세스 토큰 + 리프레시 토큰 발급
+
+        Args:
+            refresh_token: 리프레시 토큰
+
+        Returns:
+            Tuple[str, str]: (새 액세스 토큰, 새 리프레시 토큰)
+
+        Raises:
+            HTTPException: 토큰이 유효하지 않거나 만료된 경우
+        """
+        # 1. 리프레시 토큰 검증
+        payload = decode_access_token(refresh_token)
+        if payload is None or payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="리프레시 토큰이 유효하지 않습니다",
+            )
+
+        # 2. 사용자 존재 확인
+        user_id = payload.get("sub")
+        user = self.user_repo.get_by_id(int(user_id))
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="사용자를 찾을 수 없습니다",
+            )
+
+        # 3. 새 토큰 발급
+        new_access_token = create_access_token(data={"sub": str(user.id)})
+        new_refresh_token = create_refresh_token(data={"sub": str(user.id)})
+
+        return new_access_token, new_refresh_token
