@@ -285,6 +285,19 @@ class PipelineService:
             self.pipeline_status["is_running"] = False
 
         status = self.pipeline_status["current_phase"] or "failed"
+        if (
+            status == "completed"
+            and self.pipeline_status["crawl_total"] > 0
+            and self.pipeline_status["crawled_count"] == 0
+        ):
+            status = "failed"
+        if (
+            status == "completed"
+            and self.pipeline_status["crawled_count"] > 0
+            and self.pipeline_status["inserted_count"] == 0
+        ):
+            status = "failed"
+
         message = (
             "Pipeline completed successfully"
             if status == "completed"
