@@ -134,7 +134,7 @@ jobs:
     
           sudo docker pull "$IMAGE"
 
-          cat > .env <<EOF
+          cat <<EOF > .env
           APP_IMAGE=$IMAGE
           PG_HOST=${{ secrets.PG_HOST }}
           PG_PORT=${{ secrets.PG_PORT }}
