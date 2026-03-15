@@ -7,7 +7,6 @@ services:
     container_name: af_app
     environment:
       - ENABLE_PIPELINE_ROUTES=false
-      - PGVECTOR_DATABASE_URL=${PGVECTOR_DATABASE_URL:-postgresql+psycopg2://postgres:postgres@pgvector:5432/af_vectors}
       - OPENROUTER=${OPENROUTER}
       - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
       - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
