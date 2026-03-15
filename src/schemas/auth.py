@@ -49,9 +49,14 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     """토큰 응답"""
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     user_id: int
     email: str
+
+class RefreshRequest(BaseModel):
+    """토큰 갱신 요청"""
+    refresh_token: str = Field(..., description="리프레시 토큰")
 
 class UserResponse(BaseModel):
     """사용자 정보 응답"""
