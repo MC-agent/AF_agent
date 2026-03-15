@@ -4,7 +4,7 @@ import time
 from typing import Dict, List, Optional
 import json
 
-from src.utils.place_data import is_probable_address
+from src.utils.place_data import extract_address_from_text, is_probable_address
 
 
 class KakaoMapCrawler:
@@ -13,6 +13,25 @@ class KakaoMapCrawler:
     def __init__(self, headless: bool = True):
         self.headless = headless
         self.base_url = "https://place.map.kakao.com"
+
+    def _extract_meta_address(self, page: Page) -> str:
+        for selector in (
+            'meta[property="og:description"]',
+            'meta[name="twitter:description"]',
+        ):
+            try:
+                content = page.locator(selector).first.get_attribute("content")
+            except Exception:
+                content = None
+
+            if not content:
+                continue
+
+            address = extract_address_from_text(content.strip())
+            if address:
+                return address
+
+        return ""
 
     def crawl_place_detail(self, place_id: str) -> Dict:
         """
@@ -117,6 +136,11 @@ class KakaoMapCrawler:
                 )
                 if address_detail:
                     home_data['address_detail'] = address_detail
+
+            if not home_data.get('address_detail'):
+                meta_address = self._extract_meta_address(page)
+                if meta_address:
+                    home_data['address_detail'] = meta_address
 
             # 서비스 태그
             if page.locator('.txt_svc').count() > 0:
@@ -353,6 +377,10 @@ class KakaoMapCrawler:
             }""")
 
             location_data.update(location)
+            if not location_data.get('road_address'):
+                meta_address = self._extract_meta_address(page)
+                if meta_address:
+                    location_data['road_address'] = meta_address
 
         except Exception as e:
             print(f"위치 탭 크롤링 중 오류: {e}")
