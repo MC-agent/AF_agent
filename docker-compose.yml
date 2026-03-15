@@ -6,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: af_app
     environment:
-      - ENABLE_PIPELINE_ROUTES=false
+      - ENABLE_PIPELINE_ROUTES=${ENABLE_PIPELINE_ROUTES:-true}
       - OPENROUTER=${OPENROUTER}
       - OPENROUTER_API_BASE=${OPENROUTER_API_BASE}
       - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
