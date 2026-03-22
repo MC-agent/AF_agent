@@ -63,10 +63,7 @@ def is_probable_address(text: str) -> bool:
 
 
 def iter_address_source_texts(place_data: Dict[str, Any]) -> Iterable[str]:
-    yield first_text(place_data.get("road_address_name"))
-    yield first_text(place_data.get("address_name"))
-    yield first_text(place_data.get("address"))
-
+    # 크롤링 데이터에서만 주소를 가져옴 (카카오 API 필드는 사용하지 않음)
     home = place_data.get("home") or {}
     yield first_text(home.get("address_detail"))
 

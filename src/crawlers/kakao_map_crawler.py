@@ -122,20 +122,39 @@ class KakaoMapCrawler:
             if page.locator('.info_suggest a').count() > 0:
                 home_data['homepage'] = page.locator('.info_suggest a').first.get_attribute('href')
 
-            # 주소 상세 정보
-            detail_locator = page.locator('.txt_detail')
-            if detail_locator.count() > 0:
-                detail_texts = [
-                    text.strip()
-                    for text in detail_locator.all_inner_texts()
-                    if text and text.strip()
-                ]
-                address_detail = next(
-                    (text for text in detail_texts if is_probable_address(text)),
-                    "",
-                )
-                if address_detail:
-                    home_data['address_detail'] = address_detail
+            # section_defaultinfo 내 주소 영역에서 txt_detail 추출
+            address_detail = page.evaluate("""() => {
+                const section = document.querySelector('.section_defaultinfo');
+                if (!section) return '';
+                // ico_address 라벨이 있는 unit_default 블록 찾기
+                const units = section.querySelectorAll('.unit_default');
+                for (const unit of units) {
+                    if (unit.querySelector('.ico_address')) {
+                        const txt = unit.querySelector('.txt_detail');
+                        if (txt) return txt.textContent.trim();
+                    }
+                }
+                return '';
+            }""")
+
+            if address_detail:
+                home_data['address_detail'] = address_detail
+
+            # section_defaultinfo에서 못 찾으면 기존 폴백
+            if not home_data.get('address_detail'):
+                detail_locator = page.locator('.txt_detail')
+                if detail_locator.count() > 0:
+                    detail_texts = [
+                        text.strip()
+                        for text in detail_locator.all_inner_texts()
+                        if text and text.strip()
+                    ]
+                    fallback = next(
+                        (text for text in detail_texts if is_probable_address(text)),
+                        "",
+                    )
+                    if fallback:
+                        home_data['address_detail'] = fallback
 
             if not home_data.get('address_detail'):
                 meta_address = self._extract_meta_address(page)
