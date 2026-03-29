@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     pg_user: Optional[str] = None
     pg_password: Optional[str] = None
     pg_database: Optional[str] = None
-
+ 
     database_url: Optional[str] = None
     pgvector_database_url: Optional[str] = None
 
@@ -38,6 +38,7 @@ class Settings(BaseSettings):
         extra = "ignore"
 
     def _build_postgres_url(self) -> str:
+ 
         if all([self.pg_host, self.pg_user, self.pg_password, self.pg_database]):
             return (
                 f"postgresql+psycopg2://{self.pg_user}:{self.pg_password}"
