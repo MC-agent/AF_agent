@@ -133,7 +133,7 @@ def upsert_place_embeddings(records: List[Dict[str, Any]]) -> int:
 
 def search_place_embeddings(query_embedding: List[float], limit: int = 5) -> List[Dict[str, Any]]:
     init_vector_db()
-
+    
     with get_vector_session() as session:
         distance_expr = PlaceEmbedding.embedding.cosine_distance(query_embedding)
         distance = distance_expr.label("distance")
