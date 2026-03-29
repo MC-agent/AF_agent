@@ -43,7 +43,7 @@ tmp/
 !.env.example
 
 # ----------------------------
-# Docker / Milvus / 데이터
+# Docker / Vector DB / 데이터
 # ----------------------------
 volumes/
 volumes/**
