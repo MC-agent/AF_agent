@@ -8,7 +8,7 @@ _ADDRESS_PREFIX = (
     r"충북|충남|전북|전남|경북|경남|제주(?:특별자치도)?)"
 )
 _ADDRESS_PATTERN = re.compile(
-    rf"({_ADDRESS_PREFIX}\s+[^\n|,]{2,80}?(?:로|길|동|읍|면|리)\s*\d+(?:-\d+)?(?:\s+[^\n|,]{{1,30}})?)"
+    rf"({_ADDRESS_PREFIX}\s+[가-힣a-zA-Z0-9\-\s]+?(?:로|길|동|읍|면|리|대로)\s+\d+(?:-\d+)?(?:[,\s\w()]+)?)"
 )
 _HOURS_PATTERN = re.compile(r"\b\d{1,2}:\d{2}\b")
 _HOURS_KEYWORDS = (
