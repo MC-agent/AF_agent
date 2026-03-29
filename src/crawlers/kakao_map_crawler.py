@@ -122,16 +122,21 @@ class KakaoMapCrawler:
             if page.locator('.info_suggest a').count() > 0:
                 home_data['homepage'] = page.locator('.info_suggest a').first.get_attribute('href')
 
-            # section_defaultinfo 내 주소 영역에서 txt_detail 추출
+            # 도로명 주소: .txt_address 셀렉터 사용
             address_detail = page.evaluate("""() => {
+                // 1순위: .txt_address (도로명 주소 전용 셀렉터)
+                const addrEl = document.querySelector('.txt_address');
+                if (addrEl) return addrEl.textContent.trim();
+
+                // 2순위: section_defaultinfo 내 ico_address 블록
                 const section = document.querySelector('.section_defaultinfo');
-                if (!section) return '';
-                // ico_address 라벨이 있는 unit_default 블록 찾기
-                const units = section.querySelectorAll('.unit_default');
-                for (const unit of units) {
-                    if (unit.querySelector('.ico_address')) {
-                        const txt = unit.querySelector('.txt_detail');
-                        if (txt) return txt.textContent.trim();
+                if (section) {
+                    const units = section.querySelectorAll('.unit_default');
+                    for (const unit of units) {
+                        if (unit.querySelector('.ico_address')) {
+                            const txt = unit.querySelector('.txt_detail');
+                            if (txt) return txt.textContent.trim();
+                        }
                     }
                 }
                 return '';
@@ -140,22 +145,16 @@ class KakaoMapCrawler:
             if address_detail:
                 home_data['address_detail'] = address_detail
 
-            # section_defaultinfo에서 못 찾으면 기존 폴백
-            if not home_data.get('address_detail'):
-                detail_locator = page.locator('.txt_detail')
-                if detail_locator.count() > 0:
-                    detail_texts = [
-                        text.strip()
-                        for text in detail_locator.all_inner_texts()
-                        if text and text.strip()
-                    ]
-                    fallback = next(
-                        (text for text in detail_texts if is_probable_address(text)),
-                        "",
-                    )
-                    if fallback:
-                        home_data['address_detail'] = fallback
+            # 지번 주소: .txt_addr 셀렉터 사용
+            lot_address = page.evaluate("""() => {
+                const lotEl = document.querySelector('.txt_addr');
+                if (lotEl) return lotEl.textContent.trim();
+                return '';
+            }""")
+            if lot_address:
+                home_data['lot_address'] = lot_address
 
+            # 폴백: og:description 메타 태그에서 주소 추출
             if not home_data.get('address_detail'):
                 meta_address = self._extract_meta_address(page)
                 if meta_address:
@@ -378,13 +377,23 @@ class KakaoMapCrawler:
             location = page.evaluate("""() => {
                 const result = {};
 
-                // 도로명 주소
-                const roadAddrEl = document.querySelector('[class*="addrroad"], [class*="road"]');
+                // 도로명 주소: .txt_address 셀렉터 (가장 정확)
+                const roadAddrEl = document.querySelector('.txt_address');
                 if (roadAddrEl) result.road_address = roadAddrEl.textContent.trim();
 
-                // 지번 주소
-                const lotAddrEl = document.querySelector('[class*="addrnum"], [class*="lot"]');
+                // 지번 주소: .txt_addr 셀렉터
+                const lotAddrEl = document.querySelector('.txt_addr');
                 if (lotAddrEl) result.lot_address = lotAddrEl.textContent.trim();
+
+                // 폴백: og:description 메타 태그에서 주소 추출
+                if (!result.road_address) {
+                    const meta = document.querySelector('meta[property="og:description"]');
+                    if (meta) {
+                        const content = meta.getAttribute('content') || '';
+                        // og:description 형식: "서울 강남구 영동대로86길 17 육인빌딩 1층 (대치동)"
+                        result.road_address = content.trim();
+                    }
+                }
 
                 // 교통 정보
                 const trafficEls = document.querySelectorAll('[class*="traffic"] li, [class*="transport"] li');
@@ -396,10 +405,6 @@ class KakaoMapCrawler:
             }""")
 
             location_data.update(location)
-            if not location_data.get('road_address'):
-                meta_address = self._extract_meta_address(page)
-                if meta_address:
-                    location_data['road_address'] = meta_address
 
         except Exception as e:
             print(f"위치 탭 크롤링 중 오류: {e}")

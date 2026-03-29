@@ -50,9 +50,12 @@ class RagService:
 
     @property
     def openai_client(self) -> OpenAI:
-        """OpenAI 클라이언트 (임베딩용). 최초 호출 시 생성."""
+        """OpenRouter 호환 클라이언트 (임베딩용). 최초 호출 시 생성."""
         if self._openai_client is None:
-            self._openai_client = OpenAI(api_key=settings.openai_api_key)
+            self._openai_client = OpenAI(
+                api_key=settings.openrouter,
+                base_url=settings.openrouter_api_base,
+            )
         return self._openai_client
 
     @property
@@ -133,7 +136,7 @@ class RagService:
         """
         response = self.openai_client.embeddings.create(
             input=query,
-            model=settings.embedding_model,
+            model=f"openai/{settings.embedding_model}",
         )
         return response.data[0].embedding
 

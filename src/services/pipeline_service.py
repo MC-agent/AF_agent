@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 from pathlib import Path
 from typing import Dict, List
+
+logger = logging.getLogger(__name__)
 
 from openai import OpenAI
 
@@ -24,7 +27,11 @@ class PipelineService:
     EMBEDDING_MODEL = settings.embedding_model
 
     def __init__(self) -> None:
-        self.openai_client = OpenAI(api_key=settings.openai_api_key)
+        # OpenRouter 호환 API로 임베딩 생성 (OpenAI 직접 호출 대신)
+        self.openai_client = OpenAI(
+            api_key=settings.openrouter,
+            base_url=settings.openrouter_api_base,
+        )
         self.pipeline_status = {
             "is_running": False,
             "current_phase": None,
@@ -101,6 +108,7 @@ class PipelineService:
                 place_data.get("score"),
                 place_data.get("review_score"),
             )
+        logger.info("[파이프라인] normalized_place 데이터: %s", json.dumps(normalized_place, ensure_ascii=False, default=str))
         resolved_address = resolve_place_address(normalized_place)
         if resolved_address:
             home["address_detail"] = resolved_address
@@ -170,7 +178,7 @@ class PipelineService:
 
                 response = self.openai_client.embeddings.create(
                     input=text_content,
-                    model=self.EMBEDDING_MODEL,
+                    model=f"openai/{self.EMBEDDING_MODEL}",
                 )
                 embedding = response.data[0].embedding
 
