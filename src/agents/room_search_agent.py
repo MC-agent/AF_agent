@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = 'true'
+os.environ["LANGCHAIN_TRACING_V2"] = 'false'
 os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT")
 os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
@@ -105,5 +105,5 @@ agent = create_react_agent(
     - 추천해주는 숙소는 최소 2개 이상 최대 5개까지만 추천해주세요.""",
 )
 
-result = agent.invoke({"messages": [{"role": "user", "content": "홍대 근처 호텔 추천해줘"}]})
-print(result['messages'][-1].content)
+# result = agent.invoke({"messages": [{"role": "user", "content": "홍대 근처 호텔 추천해줘"}]})
+# print(result['messages'][-1].content)
