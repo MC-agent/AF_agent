@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = 'true'
+os.environ["LANGCHAIN_TRACING_V2"] = 'false'
 os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT")
 os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
@@ -171,6 +171,6 @@ agent = create_react_agent(
 
 # 테스트
 # 질문 예시 : 해운대 비치 리조트 주변에 맛집 많아 ? / 명동 게스트하우스 지하철역에서 걸어서 몇분거리야? / 제주 오션 리조트 주변에 뭐가 있어?
-if __name__ == "__main__":
-    result = agent.invoke({"messages": [{"role": "user", "content": "명동 게스트하우스 주변 쇼핑은 어떄?"}]})
-    print(result['messages'][-1].content)
+# if __name__ == "__main__":
+#     result = agent.invoke({"messages": [{"role": "user", "content": "명동 게스트하우스 주변 쇼핑은 어떄?"}]})
+#     print(result['messages'][-1].content)

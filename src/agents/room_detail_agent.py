@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 
 load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = 'true'
+os.environ["LANGCHAIN_TRACING_V2"] = 'false'
 os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT")
 os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
 os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
@@ -123,7 +123,7 @@ agent = create_react_agent(
 )
 
 # 테스트
-if __name__ == "__main__":
-    result = agent.invoke({"messages": [{"role": "user", "content": "서울 시티 호텔 주차 시설은 어때?"}]})
-    print(result['messages'][-1].content)
+# if __name__ == "__main__":
+#     result = agent.invoke({"messages": [{"role": "user", "content": "서울 시티 호텔 주차 시설은 어때?"}]})
+#     print(result['messages'][-1].content)
 
