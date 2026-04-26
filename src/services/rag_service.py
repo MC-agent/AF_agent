@@ -55,6 +55,8 @@ class RagService:
             self._openai_client = OpenAI(
                 api_key=settings.openrouter,
                 base_url=settings.openrouter_api_base,
+                timeout=settings.external_api_timeout_seconds,
+                max_retries=settings.external_api_max_retries,
             )
         return self._openai_client
 
@@ -66,6 +68,8 @@ class RagService:
                 model=settings.rag_model,
                 api_key=settings.openrouter,
                 base_url=settings.openrouter_api_base,
+                timeout=settings.external_api_timeout_seconds,
+                max_retries=settings.external_api_max_retries,
             )
         return self._llm
 

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import asyncio
 import logging
 import logging.config
 from fastapi import FastAPI, HTTPException, Request
@@ -9,6 +10,8 @@ import uvicorn
 from src.routers import pipeline, chat, auth
 from src.database.connection import init_db
 from src.config import settings
+
+logger = logging.getLogger(__name__)
 
 logging.config.dictConfig({
     "version": 1,
@@ -92,8 +95,13 @@ class TranslateResponse(BaseModel):
 async def startup_event():
     """앱 시작 시 실행"""
     try:
-        init_db()  # users, chats, messages 테이블 생성
+        await asyncio.wait_for(
+            asyncio.to_thread(init_db),
+            timeout=settings.startup_db_init_timeout_seconds,
+        )
         print("✅ 데이터베이스 초기화 완료")
+    except asyncio.TimeoutError:
+        logger.warning("Database initialization timed out; continuing startup")
     except Exception as e:
         print(f"⚠️ 데이터베이스 초기화 실패: {e}")
 
@@ -116,13 +124,7 @@ async def translate(request: TranslateRequest):
     - Japanese input -> Japanese response
     """
     try:
-        # Lazy import
-        from src.agents.translate_agent import agent
-
-        # Execute Agent
-        result = agent.invoke({
-            "messages": [{"role": "user", "content": request.text}]
-        })
+        result = await asyncio.to_thread(_invoke_translate_agent, request.text)
 
         # Extract response
         response_text = result['messages'][-1].content
@@ -134,10 +136,18 @@ async def translate(request: TranslateRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error occurred: {str(e)}")
 
+
+def _invoke_translate_agent(text: str):
+    from src.agents.translate_agent import agent
+
+    return agent.invoke({
+        "messages": [{"role": "user", "content": text}]
+    })
+
 if __name__ == "__main__":
      uvicorn.run(
          "main:app",
          host="0.0.0.0",
          port=8000,
-         reload=True
+         reload=False
      )

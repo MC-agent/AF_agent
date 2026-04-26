@@ -437,10 +437,13 @@
 #### 응답 (200 OK)
 ```json
 {
-  "message": "Pipeline started successfully. Search -> Crawl -> Insert will run automatically.",
+  "message": "Pipeline started",
   "category": "restaurant",
-  "total_places": 5,
-  "status": "running"
+  "total_places": 0,
+  "crawled_count": 0,
+  "inserted_count": 0,
+  "status": "running",
+  "errors": []
 }
 ```
 
@@ -491,7 +494,7 @@
 ---
 
 ### 14. 크롤링 데이터 업로드
-로컬에서 크롤링한 JSON 데이터를 서버로 업로드하여 pgvector에 저장합니다.
+로컬에서 크롤링한 JSON 데이터를 서버로 업로드하여 백그라운드에서 pgvector에 저장합니다.
 
 - **URL**: `/pipeline/upload`
 - **Method**: `POST`
@@ -523,10 +526,10 @@
 #### 응답 (200 OK)
 ```json
 {
-  "message": "Successfully uploaded 1 places to pgvector",
+  "message": "Upload started",
   "place_type": "restaurant",
   "total_uploaded": 1,
-  "inserted_count": 1,
+  "inserted_count": 0,
   "errors": []
 }
 ```

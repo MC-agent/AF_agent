@@ -38,6 +38,8 @@ vector_engine = create_engine(
     settings.get_pgvector_database_url(),
     pool_pre_ping=True,
     pool_recycle=3600,
+    pool_timeout=settings.database_pool_timeout_seconds,
+    connect_args={"connect_timeout": settings.database_connect_timeout_seconds},
     echo=False,
 )
 

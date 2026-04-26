@@ -6,20 +6,29 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.tools import tool
 
+from src.config import settings
+
 load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = 'true'
-os.environ["LANGCHAIN_ENDPOINT"] = os.getenv("LANGCHAIN_ENDPOINT")
-os.environ["LANGCHAIN_PROJECT"] = os.getenv("LANGCHAIN_PROJECT")
-os.environ["LANGCHAIN_API_KEY"] = os.getenv("LANGCHAIN_API_KEY")
-CHATROUTER = os.getenv("OPENROUTER")
-BASE_URL = os.getenv("OPENROUTER_API_BASE")
+if settings.langchain_tracing_v2:
+    os.environ["LANGCHAIN_TRACING_V2"] = settings.langchain_tracing_v2
+if settings.langchain_endpoint:
+    os.environ["LANGCHAIN_ENDPOINT"] = settings.langchain_endpoint
+if settings.langchain_project:
+    os.environ["LANGCHAIN_PROJECT"] = settings.langchain_project
+if settings.langchain_api_key:
+    os.environ["LANGCHAIN_API_KEY"] = settings.langchain_api_key
+
+CHATROUTER = settings.openrouter
+BASE_URL = settings.openrouter_api_base
 
 # LLM 설정
 llm = ChatOpenAI(
     api_key=CHATROUTER,
     base_url=BASE_URL,
     model="anthropic/claude-sonnet-4.5",
-    temperature=0.5
+    temperature=0.5,
+    timeout=settings.external_api_timeout_seconds,
+    max_retries=settings.external_api_max_retries,
 )
 
 @tool

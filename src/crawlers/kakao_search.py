@@ -7,6 +7,8 @@ import requests
 from typing import List, Dict, Optional
 from dotenv import load_dotenv
 
+from src.config import settings
+
 load_dotenv()
 
 
@@ -63,7 +65,12 @@ class KakaoSearch:
         if radius:
             params["radius"] = min(radius, 20000)
 
-        response = requests.get(url, headers=self.headers, params=params)
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=params,
+            timeout=settings.external_api_timeout_seconds,
+        )
         response.raise_for_status()
 
         return response.json()
@@ -102,7 +109,12 @@ class KakaoSearch:
             "page": page
         }
 
-        response = requests.get(url, headers=self.headers, params=params)
+        response = requests.get(
+            url,
+            headers=self.headers,
+            params=params,
+            timeout=settings.external_api_timeout_seconds,
+        )
         response.raise_for_status()
 
         return response.json()
