@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     rag_fallback_enabled: bool = True
     rag_top_k: int = 5
-    rag_max_distance: float = 0.45
+    rag_max_distance: Optional[float] = None
     rag_model: str = "anthropic/claude-sonnet-4.5"
     embedding_model: str = "text-embedding-3-small"
 

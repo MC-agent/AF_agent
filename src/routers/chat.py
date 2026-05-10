@@ -89,20 +89,15 @@ async def send_message(
     db: Session = Depends(get_db)
 ):
     """
-    메시지 전송 (간단 버전)
+    메시지 전송
 
     - **chat_id**: 채팅 ID
     - **message**: 메시지 내용
 
     자신이 소유한 채팅에만 메시지를 전송할 수 있습니다.
 
-    현재는 간단한 응답만 반환합니다.
-    향후 RAG 파이프라인과 연동 예정:
-    1. Embedding 변환
-    2. pgvector 검색
-    3. Kakao Map API 호출
-    4. LLM(Claude/GPT)에 전달
-    5. 자연스러운 답변 생성
+    Supervisor agent가 restaurant/room agent를 라우팅하고,
+    chat_id 단위 memory로 이전 대화 맥락을 이어갑니다.
     """
     chat_service = ChatService(db)
     result = chat_service.send_message(

@@ -20,10 +20,12 @@ services:
       - PG_USER=${PG_USER}
       - PG_PASSWORD=${PG_PASSWORD}
       - PG_DATABASE=${PG_DATABASE}
+      - DATABASE_URL=${DATABASE_URL}
+      - PGVECTOR_DATABASE_URL=${PGVECTOR_DATABASE_URL}
     ports:
-      - 8000:8000
+      - ${AF_APP_PORT:-8000}:8000
     volumes:
-      - /opt/af-agent:/app
+      - ${AF_APP_MOUNT:-.}:/app
     tty: true
 
 networks:

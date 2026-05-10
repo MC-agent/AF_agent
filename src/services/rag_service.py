@@ -20,6 +20,7 @@ from langchain_openai import ChatOpenAI
 from src.config import settings
 from src.database.models import Message
 from src.memory.vector_store import search_place_embeddings
+from src.agents.supervisor import run_supervisor
 
 logger = logging.getLogger(__name__)
 
@@ -74,13 +75,15 @@ class RagService:
         self,
         user_query: str,
         chat_history: List[Message],
+        thread_id: Optional[str] = None,
     ) -> str:
         """
-        RAG 파이프라인을 실행하여 응답을 생성합니다.
+        Supervisor agent를 실행하여 응답을 생성합니다.
 
         Args:
             user_query: 사용자 질의 텍스트.
             chat_history: 이전 대화 메시지 목록 (DB Message 객체).
+            thread_id: LangGraph memory를 구분할 대화 스레드 ID.
 
         Returns:
             LLM 이 생성한 응답 문자열.
@@ -89,6 +92,13 @@ class RagService:
             Exception: 벡터 스토어 장애 시 ``rag_fallback_enabled`` 가 False 이면
                        원본 예외를 다시 발생시킵니다.
         """
+        try:
+            return run_supervisor(user_query, thread_id=thread_id)
+        except Exception as exc:
+            logger.exception(f"Supervisor agent failed: {exc}")
+            if not settings.rag_fallback_enabled:
+                raise
+
         # 1. Embed query
         try:
             query_embedding = self._embed_query(user_query)

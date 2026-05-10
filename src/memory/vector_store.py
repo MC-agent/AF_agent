@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from contextlib import contextmanager
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Optional
 
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import String, Text, create_engine, delete, select, text
@@ -131,15 +131,19 @@ def upsert_place_embeddings(records: List[Dict[str, Any]]) -> int:
     return len(records)
 
 
-def search_place_embeddings(query_embedding: List[float], limit: int = 5) -> List[Dict[str, Any]]:
+def search_place_embeddings(
+    query_embedding: List[float],
+    limit: int = 5,
+    place_type: Optional[str] = None,
+) -> List[Dict[str, Any]]:
     init_vector_db()
-    
+
     with get_vector_session() as session:
         distance_expr = PlaceEmbedding.embedding.cosine_distance(query_embedding)
         distance = distance_expr.label("distance")
-        stmt = (
-            select(PlaceEmbedding, distance)
-        )
+        stmt = select(PlaceEmbedding, distance)
+        if place_type:
+            stmt = stmt.where(PlaceEmbedding.place_type == place_type)
         if settings.rag_max_distance is not None:
             stmt = stmt.where(distance_expr <= settings.rag_max_distance)
         stmt = stmt.order_by(distance_expr).limit(limit)
@@ -167,7 +171,10 @@ def search_place_embeddings(query_embedding: List[float], limit: int = 5) -> Lis
     return results
 
 
-def count_place_embeddings() -> int:
+def count_place_embeddings(place_type: Optional[str] = None) -> int:
     init_vector_db()
     with get_vector_session() as session:
-        return session.query(PlaceEmbedding).count()
+        query = session.query(PlaceEmbedding)
+        if place_type:
+            query = query.filter(PlaceEmbedding.place_type == place_type)
+        return query.count()
