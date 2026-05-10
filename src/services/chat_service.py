@@ -212,10 +212,14 @@ class ChatService:
                 content=content
             )
 
-            # 2. AI 응답 생성 (RAG 파이프라인)
-            # 이전 대화 내역을 가져와서 RAG에 넘겨줌 (AI가 맥락을 이해하도록)
+            # 2. AI 응답 생성 (Supervisor agent + chat별 memory)
             chat_history = self.message_repo.get_all_by_chat(chat_id)
-            ai_response = rag_service.generate_response(content, chat_history)
+            thread_id = f"user:{user_id}:chat:{chat_id}"
+            ai_response = rag_service.generate_response(
+                content,
+                chat_history,
+                thread_id=thread_id,
+            )
 
             # 3. AI 메시지 저장
             ai_message = self.message_repo.create(

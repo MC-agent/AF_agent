@@ -5,9 +5,17 @@ from langgraph.prebuilt import create_react_agent
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.tools import tool
+from src.agents.accommodation_vector import (
+    entity_address,
+    entity_name,
+    entity_rating,
+    find_best_accommodation,
+    first_text,
+    load_full_data,
+    reviews_summary,
+    services_summary,
+)
 from typing import Optional
-import json
-from pathlib import Path
 
 load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = 'false'
@@ -42,69 +50,67 @@ def get_accommodation_detail(
         요청한 숙소의 상세 정보
     """
     
-    # mock 데이터를 JSON 파일에서 로드
-    mock_file_path = Path(__file__).parent.parent / "mock" / "room.json"
-    with open(mock_file_path, 'r', encoding='utf-8') as f:
-        mock_accommodations = json.load(f)
-    
-    # 모든 지역에서 해당 숙소 찾기
-    accommodation = None
-    for location, accommodations in mock_accommodations.items():
-        for acc in accommodations:
-            if accommodation_name.lower() in acc["name"].lower() or acc["name"].lower() in accommodation_name.lower():
-                accommodation = acc
-                break
-        if accommodation:
-            break
-    
-    if not accommodation:
-        return f"'{accommodation_name}' 숙소를 찾을 수 없습니다. 정확한 숙소 이름을 입력해주세요."
-    
-    # 정보 타입에 따라 다른 정보 반환
-    result = f"🏨 {accommodation['name']} 상세 정보\n"
-    result += f"📍 위치: {accommodation['address']}\n"
-    result += f"⭐ 평점: {accommodation['rating']}/5.0\n\n"
+    hit, error = find_best_accommodation(accommodation_name)
+    if error:
+        return error
+
+    entity = hit.get("entity", {})
+    full_data = load_full_data(entity)
+    result = f"🏨 {entity_name(entity, full_data)} 상세 정보\n"
+    result += f"📍 위치: {entity_address(entity, full_data)}\n"
+    result += f"⭐ 평점: {entity_rating(entity, full_data)}\n\n"
     
     # 주차 정보
     if info_type in ["parking", "all", None]:
-        parking = accommodation.get("parking", {})
+        parking = full_data.get("parking") or {}
         result += "🚗 주차 정보:\n"
-        if parking.get("available"):
+        if isinstance(parking, dict) and parking.get("available"):
             result += f"   ✅ 주차 가능: {parking.get('type', '정보 없음')}\n"
             result += f"   📊 수용 대수: {parking.get('capacity', '정보 없음')}\n"
             result += f"   💰 주차 요금: {parking.get('fee', '정보 없음')}\n"
             result += f"   📝 상세: {parking.get('detail', '정보 없음')}\n\n"
+        elif parking:
+            result += f"   {parking}\n\n"
         else:
-            result += "   ❌ 주차 불가능\n\n"
+            result += "   pgvector 원본 데이터에 주차 정보가 없습니다.\n\n"
     
     # 체크인/체크아웃 정보
     if info_type in ["checkin", "checkout", "all", None]:
-        checkin_info = accommodation.get("checkin_checkout", {})
+        checkin_info = full_data.get("checkin_checkout") or {}
         result += "🕐 체크인/체크아웃 정보:\n"
-        result += f"   ➡️  체크인: {checkin_info.get('checkin', '정보 없음')}\n"
-        result += f"   ⬅️  체크아웃: {checkin_info.get('checkout', '정보 없음')}\n"
-        result += f"   🌅 얼리 체크인: {checkin_info.get('early_checkin', '정보 없음')}\n"
-        result += f"   🌙 레이트 체크아웃: {checkin_info.get('late_checkout', '정보 없음')}\n\n"
+        if isinstance(checkin_info, dict) and checkin_info:
+            result += f"   ➡️  체크인: {checkin_info.get('checkin', '정보 없음')}\n"
+            result += f"   ⬅️  체크아웃: {checkin_info.get('checkout', '정보 없음')}\n"
+            result += f"   🌅 얼리 체크인: {checkin_info.get('early_checkin', '정보 없음')}\n"
+            result += f"   🌙 레이트 체크아웃: {checkin_info.get('late_checkout', '정보 없음')}\n\n"
+        else:
+            result += "   pgvector 원본 데이터에 체크인/체크아웃 정보가 없습니다.\n\n"
     
     # 서비스 정보
     if info_type in ["services", "all", None]:
-        services = accommodation.get("services", [])
+        services = services_summary(full_data)
         result += "✨ 제공 서비스:\n"
-        for service in services:
-            result += f"   • {service}\n"
+        if services:
+            for service in services.split(", "):
+                result += f"   • {service}\n"
+        else:
+            result += "   pgvector 원본 데이터에 제공 서비스 정보가 없습니다.\n"
         result += "\n"
     
     # 리뷰 정보
     if info_type in ["reviews", "all", None]:
-        reviews = accommodation.get("reviews", [])
+        reviews = reviews_summary(full_data)
         result += "💬 고객 리뷰:\n"
         if reviews:
-            for idx, review in enumerate(reviews[:5], 1):  # 최대 5개 리뷰만 표시
-                result += f"   {idx}. {review.get('user', '익명')} (⭐ {review.get('rating', 0)}/5)\n"
-                result += f"      📅 {review.get('date', '날짜 없음')}\n"
-                result += f"      💭 \"{review.get('comment', '리뷰 없음')}\"\n\n"
+            for idx, review in enumerate(reviews.split(", "), 1):
+                result += f"   {idx}. {review}\n"
         else:
-            result += "   아직 리뷰가 없습니다.\n\n"
+            text_content = first_text(entity.get("text_content"))
+            if text_content:
+                result += f"   {text_content[:300]}\n"
+            else:
+                result += "   pgvector 원본 데이터에 리뷰 정보가 없습니다.\n"
+        result += "\n"
     
     return result
 
@@ -126,4 +132,3 @@ agent = create_react_agent(
 # if __name__ == "__main__":
 #     result = agent.invoke({"messages": [{"role": "user", "content": "서울 시티 호텔 주차 시설은 어때?"}]})
 #     print(result['messages'][-1].content)
-

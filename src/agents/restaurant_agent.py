@@ -149,14 +149,15 @@ def _format_restaurant_hit(index: int, hit: dict[str, Any]) -> str:
 def restaurant_info(restaurant_name: str) -> str:
     """pgvector에 저장된 식당 정보를 검색합니다. 식당 이름, 음식 종류, 지역을 입력받아 위치, 전화번호, 영업시간, 평점 등의 정보를 반환합니다."""
     query = restaurant_name.strip()
+
     if not query:
         return "검색어가 비어 있습니다. 식당 이름, 음식 종류 또는 지역을 입력해 주세요."
     if count_place_embeddings(place_type="restaurant") == 0:
         return "pgvector의 kakao_places 테이블에 저장된 식당 데이터가 없습니다. 먼저 식당 크롤링/업로드 파이프라인을 실행해 주세요."
     if not settings.openai_api_key:
         return "OPENAI_API_KEY가 없어 pgvector 검색용 임베딩을 만들 수 없습니다."
-
     embedding_client = OpenAI(api_key=settings.openai_api_key)
+
     response = embedding_client.embeddings.create(
         input=query,
         model=settings.embedding_model,
