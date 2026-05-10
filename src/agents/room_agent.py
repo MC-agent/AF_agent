@@ -34,20 +34,23 @@ llm = ChatOpenAI(
 
 agent = create_react_agent(
     model=llm,
-    tools=[get_accommodation_search],
+    tools=[get_location_info],
     prompt="""너는 숙소 예약 관련 전문 어시스턴트입니다.
 
     너는 아래와 같은 상황에 아래와 같은 도구들을 사용해서 답변을 진행하면 됩니다.
-    - 사용자가 숙소를 검색하고 추천해주길 원하면 get_accommodation_search 도구를 사용하세요.
+    - 사용자가 숙소를 검색하고 추천해주길 원하면 get_location_info 도구를 사용하세요.
 
     
     중요:
 
-    1. get_accommodation_search tool 사용시 아래 규칙을 지키세요
-    - 사용자가 체크인/체크아웃 날짜를 명시하지 않으면, 날짜 없이 바로 get_accommodation_search을 호출하세요.
-    - 사용자가 인원수를 명시하지 않으면, 기본값(2명)으로 get_accommodation_search을 호출하세요.
-    - 불필요한 추가 정보를 요청하지 말고, 바로 추천해주세요.
-    - 추천해주는 숙소는 최소 2개 이상 최대 5개까지만 추천해주세요.
+    1. get_location_info tool 사용시 아래 규칙을 지키세요
+#     - "여기서 공항까지 얼마나 걸려?" → query_type="airport"
+#     - "주변에 맛집이 많아?" → query_type="restaurants"
+#     - "지하철 역에서 걸어서 몇 분 거리야?" → query_type="transportation"
+#     - "주변에 뭐가 있어?" → query_type="all" 또는 None
+#     - 거리는 km와 도보/차량 소요 시간으로 친절하게 설명하세요.
+#     - 사용자가 구체적인 정보를 물어보면 해당 정보만 제공하세요.
+#     - 일반적인 위치 질문이면 모든 정보를 제공하세요.
 
     
     """

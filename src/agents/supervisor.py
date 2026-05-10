@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from typing import Annotated, List, Optional
 from dotenv import load_dotenv
 from src.agents.restaurant_agent import load_restaurant_agent
-from src.agents.room_agent import agent as room_check_agent
+from src.agents.room_agent import agent as room_agent
 from src.config import settings
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import InMemorySaver
@@ -26,7 +26,7 @@ llm = ChatOpenAI(
     temperature=0.5
 )
 restaurant_agent = load_restaurant_agent()
-supervisor = create_supervisor([restaurant_agent, room_check_agent],model=llm,prompt=(
+supervisor = create_supervisor([restaurant_agent, room_agent],model=llm,prompt=(
     "너는 슈퍼바이저 역할을 하는 에이전트야. 사용자의 요청을 읽고 restaurant_agent와 room_check_agent 중 가장 알맞은 에이전트에게 바로 위임해."
     "식당, 맛집, 음식 종류, 식당 이름, 지역 기반 음식점 추천/검색 요청은 restaurant_agent에게 위임해. restaurant_agent는 pgvector에 저장된 카카오맵 식당 데이터를 검색해서 이름, 위치, 전화번호, 영업시간, 평점 등을 반환할 수 있어."
     "숙소, 호텔, 게스트하우스, 리조트, 객실, 예약 가능 여부, 숙소 위치/상세 정보 요청은 room_check_agent에게 위임해. room_check_agent는 pgvector 숙소 검색과 도구를 사용할 수 있어."
