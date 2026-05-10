@@ -15,6 +15,23 @@ NO_ACCOMMODATION_DATA = (
     "먼저 숙소 크롤링/업로드 파이프라인을 실행해 주세요."
 )
 
+LOCATION_ALIASES: dict[str, list[str]] = {
+    "홍대": ["홍대", "서교", "연남", "합정", "상수", "망원", "마포"],
+    "마포": ["마포"],
+    "서교": ["서교", "홍대"],
+    "연남": ["연남", "홍대"],
+    "합정": ["합정", "홍대"],
+    "상수": ["상수", "홍대"],
+    "망원": ["망원", "마포"],
+    "강남": ["강남", "역삼", "논현", "삼성", "청담", "신사", "코엑스"],
+    "역삼": ["역삼", "강남"],
+    "논현": ["논현", "강남"],
+    "삼성": ["삼성", "코엑스", "강남"],
+    "청담": ["청담", "강남"],
+    "신사": ["신사", "강남"],
+    "코엑스": ["코엑스", "삼성", "강남"],
+}
+
 
 def first_text(*values: Any) -> str:
     for value in values:
@@ -39,6 +56,30 @@ def load_full_data(entity: dict[str, Any]) -> dict[str, Any]:
     return loaded if isinstance(loaded, dict) else {}
 
 
+def detect_location_filter(query: str) -> tuple[str, list[str]]:
+    query_text = query or ""
+    for location, aliases in LOCATION_ALIASES.items():
+        if location in query_text:
+            return location, aliases
+    return "", []
+
+
+def matches_location(entity: dict[str, Any], aliases: list[str]) -> bool:
+    full_data = load_full_data(entity)
+    haystack = " ".join(
+        [
+            first_text(entity.get("name")),
+            first_text(entity.get("address")),
+            first_text(entity.get("category")),
+            first_text(entity.get("text_content")),
+            first_text((full_data.get("location") or {}).get("road_address")),
+            first_text((full_data.get("location") or {}).get("lot_address")),
+            first_text((full_data.get("home") or {}).get("address_detail")),
+        ]
+    )
+    return any(alias in haystack for alias in aliases)
+
+
 def search_accommodations(query: str, limit: int = 5) -> tuple[list[dict[str, Any]], Optional[str]]:
     if count_place_embeddings(place_type="accommodation") == 0:
         return [], NO_ACCOMMODATION_DATA
@@ -54,12 +95,21 @@ def search_accommodations(query: str, limit: int = 5) -> tuple[list[dict[str, An
     except Exception as exc:
         return [], f"pgvector 검색용 임베딩 생성에 실패했습니다: {exc}"
 
+    location, aliases = detect_location_filter(query)
+    search_limit = max(limit, 50) if aliases else limit
     results = search_place_embeddings(
         response.data[0].embedding,
-        limit=limit,
+        limit=search_limit,
         place_type="accommodation",
     )
-    return results, None
+    if aliases:
+        results = [hit for hit in results if matches_location(hit.get("entity", {}), aliases)]
+        if not results:
+            return [], (
+                f"'{location}' 지역과 일치하는 숙소 데이터가 pgvector에 없습니다. "
+                "현재 저장된 숙소 지역을 확인하거나 숙소 데이터를 추가로 업로드해 주세요."
+            )
+    return results[:limit], None
 
 
 def entity_name(entity: dict[str, Any], full_data: Optional[dict[str, Any]] = None) -> str:
