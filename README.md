@@ -7,7 +7,7 @@
 
 ## 로컬에서 실행하기 
 
-인프라(Milvus 등)는 도커로, 앱 서버는 로컬 Python으로 실행하는 방법이에요.
+인프라(pgvector 등)는 도커로, 앱 서버는 로컬 Python으로 실행하는 방법이에요.
 
 ### 1. 파이썬 가상환경 만들기 & 띄우기
 
@@ -45,7 +45,7 @@ Node.js(프론트엔드)에 익숙한 분들을 위해 비교하면:
 - `source .venv/bin/activate` → 이 프로젝트 전용 Python 환경을 사용하겠다는 뜻
 - 터미널에 `(.venv)` 표시가 뜨면 가상환경이 켜진 상태예요!
 
-### 2. 인프라 컨테이너 띄우기 (Milvus 등)
+### 2. 인프라 컨테이너 띄우기 (pgvector 등)
 
 ```bash
 docker-compose -f docker-compose.infra.yml up -d

@@ -77,7 +77,10 @@ def upload_to_server(
     response = requests.post(endpoint, json=payload, timeout=300)
     response.raise_for_status()
     result = response.json()
-    print(f"Uploaded {result['inserted_count']} places to pgvector.")
+    print(
+        f"{result['message']}. "
+        f"Track progress at {server_url}/pipeline/status."
+    )
     return result
 
 

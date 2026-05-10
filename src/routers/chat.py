@@ -19,7 +19,7 @@ router = APIRouter(
 )
 
 @router.get("", response_model=List[ChatResponse])
-async def get_user_chats(
+def get_user_chats(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -33,7 +33,7 @@ async def get_user_chats(
 
 
 @router.post("", response_model=ChatResponse)
-async def create_chat(
+def create_chat(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -48,7 +48,7 @@ async def create_chat(
 
 
 @router.get("/{chat_id}", response_model=ChatResponse)
-async def get_chat(
+def get_chat(
     chat_id: int = Path(..., description="채팅 ID"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -65,7 +65,7 @@ async def get_chat(
 
 
 @router.get("/{chat_id}/messages", response_model=List[MessageResponse])
-async def get_messages(
+def get_messages(
     chat_id: int = Path(..., description="채팅 ID"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -82,7 +82,7 @@ async def get_messages(
 
 
 @router.post("/{chat_id}/messages", response_model=ChatMessageResponse)
-async def send_message(
+def send_message(
     chat_id: int = Path(..., description="채팅 ID"),
     message: MessageCreate = None,
     current_user: User = Depends(get_current_user),
@@ -114,7 +114,7 @@ async def send_message(
 
 
 @router.delete("/{chat_id}")
-async def delete_chat(
+def delete_chat(
     chat_id: int = Path(..., description="채팅 ID"),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)

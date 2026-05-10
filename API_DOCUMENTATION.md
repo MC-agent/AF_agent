@@ -332,7 +332,7 @@
 
 #### 참고
 - 현재는 간단한 응답을 반환합니다.
-- 향후 RAG 파이프라인 연동 예정 (Embedding → Milvus 검색 → Kakao Map API → LLM)
+- 향후 RAG 파이프라인 연동 예정 (Embedding → pgvector 검색 → Kakao Map API → LLM)
 
 #### 에러
 - `401`: 인증 정보가 유효하지 않음
@@ -417,7 +417,7 @@
 ## 파이프라인 API
 
 ### 12. 파이프라인 실행
-카카오맵 검색 → 크롤링 → Milvus 삽입까지 완전 통합 파이프라인을 백그라운드로 실행합니다.
+카카오맵 검색 → 크롤링 → pgvector 저장까지 완전 통합 파이프라인을 백그라운드로 실행합니다.
 
 - **URL**: `/pipeline/run`
 - **Method**: `POST`
@@ -437,17 +437,20 @@
 #### 응답 (200 OK)
 ```json
 {
-  "message": "Pipeline started successfully. Search -> Crawl -> Insert will run automatically.",
+  "message": "Pipeline started",
   "category": "restaurant",
-  "total_places": 5,
-  "status": "running"
+  "total_places": 0,
+  "crawled_count": 0,
+  "inserted_count": 0,
+  "status": "running",
+  "errors": []
 }
 ```
 
 #### 파이프라인 단계
 1. **searching**: 카카오 API로 장소 검색
 2. **crawling**: 카카오맵에서 상세 정보 크롤링
-3. **inserting**: OpenAI 임베딩 생성 및 Milvus 삽입
+3. **inserting**: OpenAI 임베딩 생성 및 pgvector 저장
 4. **completed**: 완료
 
 #### 에러
@@ -485,13 +488,13 @@
 - `crawl_progress/crawl_total`: 크롤링 진행률
 - `insert_progress/insert_total`: 삽입 진행률
 - `crawled_count`: 총 크롤링된 장소 수
-- `inserted_count`: 총 Milvus에 삽입된 장소 수
+- `inserted_count`: 총 pgvector에 저장된 장소 수
 - `errors`: 발생한 에러 목록
 
 ---
 
 ### 14. 크롤링 데이터 업로드
-로컬에서 크롤링한 JSON 데이터를 서버로 업로드하여 Milvus에 저장합니다.
+로컬에서 크롤링한 JSON 데이터를 서버로 업로드하여 백그라운드에서 pgvector에 저장합니다.
 
 - **URL**: `/pipeline/upload`
 - **Method**: `POST`
@@ -523,10 +526,10 @@
 #### 응답 (200 OK)
 ```json
 {
-  "message": "Successfully uploaded and inserted 1 places to Milvus",
+  "message": "Upload started",
   "place_type": "restaurant",
   "total_uploaded": 1,
-  "inserted_count": 1,
+  "inserted_count": 0,
   "errors": []
 }
 ```

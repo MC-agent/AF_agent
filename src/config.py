@@ -26,6 +26,11 @@ class Settings(BaseSettings):
     rag_max_distance: Optional[float] = None
     rag_model: str = "anthropic/claude-sonnet-4.5"
     embedding_model: str = "text-embedding-3-small"
+    external_api_timeout_seconds: float = 25.0
+    external_api_max_retries: int = 1
+    database_connect_timeout_seconds: int = 5
+    database_pool_timeout_seconds: int = 10
+    startup_db_init_timeout_seconds: float = 10.0
 
     langchain_tracing_v2: Optional[str] = None
     langchain_endpoint: Optional[str] = None

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
+import threading
 from pathlib import Path
 from typing import Dict, List
+
+logger = logging.getLogger(__name__)
 
 from openai import OpenAI
 
@@ -24,7 +28,13 @@ class PipelineService:
     EMBEDDING_MODEL = settings.embedding_model
 
     def __init__(self) -> None:
-        self.openai_client = OpenAI(api_key=settings.openai_api_key)
+        # OpenRouter 호환 API로 임베딩 생성 (OpenAI 직접 호출 대신)
+        self.openai_client = OpenAI(
+            api_key=settings.openrouter,
+            base_url=settings.openrouter_api_base,
+            timeout=settings.external_api_timeout_seconds,
+            max_retries=settings.external_api_max_retries,
+        )
         self.pipeline_status = {
             "is_running": False,
             "current_phase": None,
@@ -37,9 +47,31 @@ class PipelineService:
             "inserted_count": 0,
             "errors": [],
         }
+        self._status_lock = threading.Lock()
 
     def get_status(self) -> Dict:
         return self.pipeline_status.copy()
+
+    def start_pipeline(self, category: str) -> bool:
+        with self._status_lock:
+            if self.pipeline_status["is_running"]:
+                return False
+
+            self.pipeline_status.update(
+                {
+                    "is_running": True,
+                    "current_phase": "queued",
+                    "category": category,
+                    "crawl_progress": 0,
+                    "crawl_total": 0,
+                    "insert_progress": 0,
+                    "insert_total": 0,
+                    "crawled_count": 0,
+                    "inserted_count": 0,
+                    "errors": [],
+                }
+            )
+            return True
 
     def search_places_with_kakao(
         self,
@@ -101,6 +133,7 @@ class PipelineService:
                 place_data.get("score"),
                 place_data.get("review_score"),
             )
+        logger.info("[파이프라인] normalized_place 데이터: %s", json.dumps(normalized_place, ensure_ascii=False, default=str))
         resolved_address = resolve_place_address(normalized_place)
         if resolved_address:
             home["address_detail"] = resolved_address
@@ -170,7 +203,7 @@ class PipelineService:
 
                 response = self.openai_client.embeddings.create(
                     input=text_content,
-                    model=self.EMBEDDING_MODEL,
+                    model=f"openai/{self.EMBEDDING_MODEL}",
                 )
                 embedding = response.data[0].embedding
 
@@ -194,21 +227,20 @@ class PipelineService:
         limit_per_query: int,
         crawl_limit: int,
         recreate_collection: bool,
+        status_already_started: bool = False,
     ) -> Dict:
-        self.pipeline_status.update(
-            {
-                "is_running": True,
-                "current_phase": "initializing",
+        if not status_already_started and not self.start_pipeline(category):
+            return {
+                "message": "Pipeline is already running",
                 "category": category,
-                "crawl_progress": 0,
-                "crawl_total": 0,
-                "insert_progress": 0,
-                "insert_total": 0,
-                "crawled_count": 0,
-                "inserted_count": 0,
-                "errors": [],
+                "total_places": self.pipeline_status["crawled_count"],
+                "crawled_count": self.pipeline_status["crawled_count"],
+                "inserted_count": self.pipeline_status["inserted_count"],
+                "status": "running",
+                "errors": list(self.pipeline_status["errors"]),
             }
-        )
+
+        self.pipeline_status["current_phase"] = "initializing"
 
         try:
             self.create_vector_store(recreate=recreate_collection)
@@ -313,12 +345,24 @@ class PipelineService:
         place_type: str,
         places: List[Dict],
         recreate_collection: bool,
+        status_already_started: bool = False,
     ) -> Dict:
+        if not status_already_started and not self.start_pipeline(place_type):
+            return {
+                "message": "Pipeline is already running",
+                "place_type": place_type,
+                "total_uploaded": len(places),
+                "inserted_count": self.pipeline_status["inserted_count"],
+                "errors": list(self.pipeline_status["errors"]),
+            }
+
         try:
-            self.pipeline_status["errors"] = []
+            self.pipeline_status["current_phase"] = "inserting"
             self.create_vector_store(recreate=recreate_collection)
             records = self._prepare_records(place_type, places)
             inserted_count = upsert_place_embeddings(records)
+            self.pipeline_status["inserted_count"] = inserted_count
+            self.pipeline_status["current_phase"] = "completed"
 
             return {
                 "message": f"Successfully uploaded {inserted_count} places to pgvector",
@@ -328,4 +372,8 @@ class PipelineService:
                 "errors": list(self.pipeline_status["errors"]),
             }
         except Exception as exc:
+            self.pipeline_status["current_phase"] = "failed"
+            self.pipeline_status["errors"].append(f"Upload failed: {exc}")
             raise Exception(f"Upload failed: {exc}") from exc
+        finally:
+            self.pipeline_status["is_running"] = False

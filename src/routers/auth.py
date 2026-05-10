@@ -51,7 +51,7 @@ router = APIRouter(
         },
     },
 )
-async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
+def signup(user_data: UserSignup, db: Session = Depends(get_db)):
     """
     회원가입
 
@@ -128,7 +128,7 @@ async def signup(user_data: UserSignup, db: Session = Depends(get_db)):
         },
     },
 )
-async def login(user_data: UserLogin, db: Session = Depends(get_db)):
+def login(user_data: UserLogin, db: Session = Depends(get_db)):
     """
     로그인
 
@@ -194,7 +194,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
         },
     },
 )
-async def logout(current_user: User = Depends(get_current_user)):
+def logout(current_user: User = Depends(get_current_user)):
     """
     로그아웃
 
@@ -228,7 +228,7 @@ async def logout(current_user: User = Depends(get_current_user)):
         },
     },
 )
-async def refresh(request: RefreshRequest, db: Session = Depends(get_db)):
+def refresh(request: RefreshRequest, db: Session = Depends(get_db)):
     """
     토큰 갱신
 
@@ -289,7 +289,7 @@ async def refresh(request: RefreshRequest, db: Session = Depends(get_db)):
         },
     },
 )
-async def get_me(current_user: User = Depends(get_current_user)):
+def get_me(current_user: User = Depends(get_current_user)):
     """
     현재 로그인한 사용자 정보 조회
 

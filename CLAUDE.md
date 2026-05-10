@@ -23,7 +23,7 @@ python main.py
 # or: uvicorn main:app --reload
 
 # Docker (full stack)
-docker-compose -f docker-compose.infra.yml up -d  # Start Milvus, etc.
+docker-compose -f docker-compose.infra.yml up -d  # Start pgvector, etc.
 docker-compose up -d                               # Start app
 docker-compose logs -f app
 
@@ -43,20 +43,20 @@ FastAPI Routes (routers/)
             ├── Repositories (repositories/) → PostgreSQL via SQLAlchemy
             ├── Agents (agents/)             → LangGraph ReAct agents
             ├── Crawlers (crawlers/)         → Kakao Map API + Playwright
-            └── Memory (memory/)            → Milvus vector DB
+            └── Memory (memory/)            → pgvector-backed vector store
 ```
 
 ### Key Data Flow
 
 **Chat Message Flow:**
 1. POST `/api/chats/{id}/messages` → saves user message to PostgreSQL
-2. RAG service: query → OpenAI embedding → Milvus similarity search → context
+2. RAG service: query → OpenAI embedding → pgvector similarity search → context
 3. Claude (via OpenRouter) generates response with context + chat history
 4. AI response saved to PostgreSQL and returned
 
 **Data Pipeline Flow:**
 1. POST `/pipeline/run` → BackgroundTask
-2. Kakao API keyword search → Playwright browser scraping → OpenAI embedding → Milvus insert
+2. Kakao API keyword search → Playwright browser scraping → OpenAI embedding → pgvector upsert
 3. Poll status at GET `/pipeline/status`
 
 ### Configuration (`src/config.py`)
@@ -64,7 +64,7 @@ FastAPI Routes (routers/)
 All settings are loaded from `.env` via Pydantic Settings. Key variables:
 - `RAG_MODEL` — LLM for generation (default: `anthropic/claude-sonnet-4.5` via OpenRouter)
 - `EMBEDDING_MODEL` — OpenAI embedding model (default: `text-embedding-3-small`)
-- `MILVUS_URI` — Vector DB endpoint
+- `PGVECTOR_DATABASE_URL` — Vector DB connection string
 - `RAG_TOP_K` — Number of retrieved context items (default: 5)
 - `ENABLE_PIPELINE_ROUTES` — Toggle pipeline endpoints
 - PostgreSQL connection: `PG_HOST`, `PG_USER`, `PG_PASSWORD`, `PG_DATABASE`, `PG_PORT`
@@ -78,7 +78,7 @@ JWT-based (7-day expiration, bcrypt password hashing). Protected endpoints requi
 | Service | Purpose |
 |---------|---------|
 | PostgreSQL | User/Chat/Message persistence (SQLAlchemy ORM) |
-| Milvus | Vector store for place embeddings (`kakao_places` collection) |
+| pgvector | Vector store for place embeddings (`kakao_places` table) |
 | OpenAI API | Embeddings (`text-embedding-3-small`) |
 | OpenRouter | LLM inference (Claude model) |
 | Kakao API | Place search + Playwright browser scraping |

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "AF Agent API",
-    "description": "Translation Agent and Integrated Pipeline API Server",
+    "description": "Postman collection aligned with the current FastAPI routes.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -20,50 +20,46 @@
       "script": {
         "type": "text/javascript",
         "exec": [
-          "// 로그인 요청 자체는 스킵",
-          "const skipPaths = ['/api/auth/login', '/api/auth/signup'];",
+          "const skipPaths = ['/api/auth/login', '/api/auth/signup', '/api/auth/refresh'];",
           "const currentUrl = pm.request.url.toString();",
-          "const isAuthRequest = skipPaths.some(p => currentUrl.includes(p));",
-          "if (isAuthRequest) return;",
+          "const shouldSkip = skipPaths.some((path) => currentUrl.includes(path));",
+          "if (shouldSkip) return;",
           "",
-          "// 토큰이 있으면 만료 여부 체크",
           "const token = pm.collectionVariables.get('token');",
           "if (token) {",
-          "    try {",
-          "        const payload = JSON.parse(atob(token.split('.')[1]));",
-          "        const expMs = payload.exp * 1000;",
-          "        // 만료까지 60초 이상 남아 있으면 재로그인 불필요",
-          "        if (Date.now() < expMs - 60000) return;",
-          "    } catch(e) {",
-          "        // decode 실패 시 재로그인 진행",
-          "    }",
+          "  try {",
+          "    const payload = JSON.parse(atob(token.split('.')[1]));",
+          "    const expMs = payload.exp * 1000;",
+          "    if (Date.now() < expMs - 60000) return;",
+          "  } catch (error) {",
+          "    console.log('Token decode failed, trying auto-login.');",
+          "  }",
           "}",
           "",
-          "// 토큰 없거나 만료 임박 → 로그인 요청",
           "const baseUrl = pm.collectionVariables.get('base_url');",
-          "const email    = pm.collectionVariables.get('login_email');",
+          "const email = pm.collectionVariables.get('login_email');",
           "const password = pm.collectionVariables.get('login_password');",
           "",
           "pm.sendRequest({",
-          "    url: baseUrl + '/api/auth/login',",
-          "    method: 'POST',",
-          "    header: { 'Content-Type': 'application/json' },",
-          "    body: {",
-          "        mode: 'raw',",
-          "        raw: JSON.stringify({ email, password })",
-          "    }",
+          "  url: baseUrl + '/api/auth/login',",
+          "  method: 'POST',",
+          "  header: { 'Content-Type': 'application/json' },",
+          "  body: {",
+          "    mode: 'raw',",
+          "    raw: JSON.stringify({ email, password })",
+          "  }",
           "}, (err, res) => {",
-          "    if (err) {",
-          "        console.error('Auto-login failed:', err);",
-          "        return;",
-          "    }",
-          "    const body = res.json();",
-          "    if (body.access_token) {",
-          "        pm.collectionVariables.set('token', body.access_token);",
-          "        console.log('Auto-login success. Token refreshed.');",
-          "    } else {",
-          "        console.error('Auto-login: no token in response', body);",
-          "    }",
+          "  if (err) {",
+          "    console.error('Auto-login failed:', err);",
+          "    return;",
+          "  }",
+          "  const body = res.json();",
+          "  if (body.access_token) {",
+          "    pm.collectionVariables.set('token', body.access_token);",
+          "  }",
+          "  if (body.refresh_token) {",
+          "    pm.collectionVariables.set('refresh_token', body.refresh_token);",
+          "  }",
           "});"
         ]
       }
@@ -78,26 +74,27 @@
     {
       "key": "login_email",
       "value": "user@example.com",
-      "type": "string",
-      "description": "자동 로그인에 사용할 이메일"
+      "type": "string"
     },
     {
       "key": "login_password",
-      "value": "password123",
-      "type": "string",
-      "description": "자동 로그인에 사용할 비밀번호"
+      "value": "Password1!",
+      "type": "string"
     },
     {
       "key": "token",
       "value": "",
-      "type": "string",
-      "description": "JWT 액세스 토큰 (자동 관리)"
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
     },
     {
       "key": "chat_id",
       "value": "",
-      "type": "string",
-      "description": "채팅 생성 시 자동 저장"
+      "type": "string"
     }
   ],
   "item": [
@@ -105,29 +102,44 @@
       "name": "Auth",
       "item": [
         {
-          "name": "회원가입",
+          "name": "Signup",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/auth/signup",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "signup"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "signup"
+              ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"홍길동\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"Password1!\",\n  \"name\": \"Postman User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "회원가입 (인증 불필요)"
+            "description": "Create a user account. Password must satisfy the current validation rules."
           },
           "response": []
         },
         {
-          "name": "로그인",
+          "name": "Login",
           "event": [
             {
               "listen": "test",
@@ -135,59 +147,134 @@
                 "type": "text/javascript",
                 "exec": [
                   "const res = pm.response.json();",
-                  "if (res.access_token) {",
-                  "    pm.collectionVariables.set('token', res.access_token);",
-                  "    console.log('Token saved:', res.access_token);",
-                  "}"
+                  "if (res.access_token) pm.collectionVariables.set('token', res.access_token);",
+                  "if (res.refresh_token) pm.collectionVariables.set('refresh_token', res.refresh_token);"
                 ]
               }
             }
           ],
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/api/auth/login",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "login"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"email\": \"{{login_email}}\",\n  \"password\": \"{{login_password}}\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "수동 로그인. 성공 시 {{token}}에 자동 저장됩니다."
+            "description": "Log in and store access_token and refresh_token as collection variables."
           },
           "response": []
         },
         {
-          "name": "로그아웃",
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) pm.collectionVariables.set('token', res.access_token);",
+                  "if (res.refresh_token) pm.collectionVariables.set('refresh_token', res.refresh_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "refresh"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Exchange refresh_token for a new access_token and refresh_token."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
           "request": {
             "method": "POST",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/auth/logout",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "logout"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
             },
-            "description": "로그아웃"
+            "description": "JWT logout endpoint. The server validates the bearer token."
           },
           "response": []
         },
         {
-          "name": "내 정보 조회",
+          "name": "Me",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/auth/me",
-              "host": ["{{base_url}}"],
-              "path": ["api", "auth", "me"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "me"
+              ]
             },
-            "description": "현재 로그인한 사용자 정보 조회"
+            "description": "Read the current authenticated user."
           },
           "response": []
         }
@@ -197,21 +284,26 @@
       "name": "Chat",
       "item": [
         {
-          "name": "채팅 목록 조회",
+          "name": "List Chats",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/chats",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats"
+              ]
             },
-            "description": "현재 로그인한 사용자의 모든 채팅 목록 조회 (최신 업데이트 순)"
+            "description": "List chats for the current authenticated user."
           },
           "response": []
         },
         {
-          "name": "채팅 생성",
+          "name": "Create Chat",
           "event": [
             {
               "listen": "test",
@@ -219,114 +311,121 @@
                 "type": "text/javascript",
                 "exec": [
                   "const res = pm.response.json();",
-                  "if (res.id) {",
-                  "    pm.collectionVariables.set('chat_id', res.id);",
-                  "    console.log('Chat ID saved:', res.id);",
-                  "}"
+                  "if (res.id) pm.collectionVariables.set('chat_id', res.id);"
                 ]
               }
             }
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
+            "header": [],
             "url": {
               "raw": "{{base_url}}/api/chats",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats"
+              ]
             },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"강남 맛집 추천\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "description": "새로운 채팅 생성. 응답의 chat_id를 {{chat_id}} 변수에 자동 저장."
+            "description": "Create an empty chat. Current route does not accept a request body."
           },
           "response": []
         },
         {
-          "name": "채팅 조회",
+          "name": "Get Chat",
           "request": {
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/chats/{{chat_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats", "{{chat_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{chat_id}}"
+              ]
             },
-            "description": "특정 채팅 정보 조회"
+            "description": "Fetch a chat by id."
           },
           "response": []
         },
         {
-          "name": "채팅 삭제",
+          "name": "List Messages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/chats/{{chat_id}}/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{chat_id}}",
+                "messages"
+              ]
+            },
+            "description": "List all messages in the selected chat."
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chats/{{chat_id}}/messages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{chat_id}}",
+                "messages"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Recommend restaurants in Gangnam\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Send a user message and receive the generated assistant reply."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Chat",
           "request": {
             "method": "DELETE",
             "header": [],
             "url": {
               "raw": "{{base_url}}/api/chats/{{chat_id}}",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats", "{{chat_id}}"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "chats",
+                "{{chat_id}}"
+              ]
             },
-            "description": "채팅 삭제"
-          },
-          "response": []
-        },
-        {
-          "name": "채팅 제목 수정",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/chats/{{chat_id}}/title",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats", "{{chat_id}}", "title"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"수정된 채팅 제목\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "description": "채팅 제목 업데이트"
-          },
-          "response": []
-        },
-        {
-          "name": "메시지 목록 조회",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/chats/{{chat_id}}/messages",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats", "{{chat_id}}", "messages"]
-            },
-            "description": "채팅의 모든 메시지 조회"
-          },
-          "response": []
-        },
-        {
-          "name": "메시지 전송",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" }
-            ],
-            "url": {
-              "raw": "{{base_url}}/api/chats/{{chat_id}}/messages",
-              "host": ["{{base_url}}"],
-              "path": ["api", "chats", "{{chat_id}}", "messages"]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"content\": \"강남 맛집 추천해줘\"\n}",
-              "options": { "raw": { "language": "json" } }
-            },
-            "description": "메시지 전송"
+            "description": "Delete the selected chat."
           },
           "response": []
         }
@@ -336,59 +435,96 @@
       "name": "Pipeline",
       "item": [
         {
-          "name": "파이프라인 실행",
+          "name": "Run Pipeline",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/pipeline/run",
-              "host": ["{{base_url}}"],
-              "path": ["pipeline", "run"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pipeline",
+                "run"
+              ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"category\": \"restaurant\",\n  \"search_queries\": [\"강남 맛집\", \"신사동 일식\"],\n  \"limit_per_query\": 10,\n  \"crawl_limit\": 5,\n  \"recreate_collection\": false\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"category\": \"restaurant\",\n  \"search_queries\": [\"Gangnam restaurants\"],\n  \"limit_per_query\": 10,\n  \"crawl_limit\": 5,\n  \"recreate_collection\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "카카오맵 검색 → Milvus 삽입 전체 파이프라인 실행"
+            "description": "Run the search -> crawl -> insert pipeline in the background."
           },
           "response": []
         },
         {
-          "name": "파이프라인 상태 조회",
+          "name": "Pipeline Status",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/pipeline/status",
-              "host": ["{{base_url}}"],
-              "path": ["pipeline", "status"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pipeline",
+                "status"
+              ]
             },
-            "description": "파이프라인 진행 상태 확인 (인증 불필요)"
+            "description": "Check background pipeline status."
           },
           "response": []
         },
         {
-          "name": "크롤링 데이터 업로드",
+          "name": "Upload Crawled Data",
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/pipeline/upload",
-              "host": ["{{base_url}}"],
-              "path": ["pipeline", "upload"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pipeline",
+                "upload"
+              ]
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"place_type\": \"restaurant\",\n  \"places\": [\n    {\n      \"place_id\": \"11463001\",\n      \"basic_info\": { \"name\": \"맛집\", \"category\": \"음식점\" },\n      \"home\": {},\n      \"location\": {},\n      \"menu\": {},\n      \"photo\": {},\n      \"review\": {},\n      \"blog_review\": {}\n    }\n  ],\n  \"recreate_collection\": false\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"place_type\": \"restaurant\",\n  \"places\": [\n    {\n      \"place_id\": \"11463001\",\n      \"basic_info\": {\n        \"name\": \"Sample Place\",\n        \"category\": \"Restaurant\"\n      },\n      \"home\": {},\n      \"menu\": {},\n      \"review\": {},\n      \"blog_review\": {},\n      \"photo\": {},\n      \"location\": {}\n    }\n  ],\n  \"recreate_collection\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "로컬 크롤링 데이터를 Milvus에 업로드"
+            "description": "Upload already crawled place payloads."
           },
           "response": []
         }
@@ -398,52 +534,77 @@
       "name": "General",
       "item": [
         {
-          "name": "루트",
+          "name": "Root",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/",
-              "host": ["{{base_url}}"],
-              "path": [""]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                ""
+              ]
             }
           },
           "response": []
         },
         {
-          "name": "헬스 체크",
+          "name": "Health",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
             "url": {
               "raw": "{{base_url}}/health",
-              "host": ["{{base_url}}"],
-              "path": ["health"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
             }
           },
           "response": []
         },
         {
-          "name": "번역",
+          "name": "Translate",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
             ],
             "url": {
               "raw": "{{base_url}}/translate",
-              "host": ["{{base_url}}"],
-              "path": ["translate"]
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "translate"
+              ]
             },
             "body": {
               "mode": "raw",
               "raw": "{\n  \"text\": \"Hello, how are you?\"\n}",
-              "options": { "raw": { "language": "json" } }
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             },
-            "description": "텍스트 언어 감지 후 동일 언어로 응답"
+            "description": "Send text to the translation endpoint."
           },
           "response": []
         }
