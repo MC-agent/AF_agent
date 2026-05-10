@@ -34,7 +34,7 @@ llm = ChatOpenAI(
 
 agent = create_react_agent(
     model=llm,
-    tools=[check_availability,get_accommodation_detail,get_location_info,get_accommodation_search],
+    tools=[get_location_info,get_accommodation_search],
     prompt="""너는 숙소 예약 관련 전문 어시스턴트입니다.
 
     너는 아래와 같은 상황에 아래와 같은 도구들을 사용해서 답변을 진행하면 됩니다.

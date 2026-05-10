@@ -55,5 +55,5 @@ def SupervisorAgent(state: State, thread_id: Optional[str] = None) -> str:
 
 
 if __name__ == "__main__":
-    result = run_supervisor("강남에 있는 숙소 추천해줘 2026년5월1일 ~ 5월 3일", thread_id="manual-test")
+    result = run_supervisor("강남에 있는 숙소 추천해줘", thread_id="manual-test")
     print(result)
