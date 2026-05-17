@@ -27,9 +27,9 @@ llm = ChatOpenAI(
 @tool
 def get_accommodation_search(
     location: str,
-    check_in: str,
-    check_out: str,
-    guests: int = 2,
+    check_in: Optional[str] = None,
+    check_out: Optional[str] = None,
+    guests: Optional[int] = None,
     min_price: Optional[int] = None,
     max_price: Optional[int] = None,
     accommodation_type: Optional[str] = None
@@ -40,11 +40,11 @@ def get_accommodation_search(
     
     Args:
         location: 검색할 지역 (예: "서울", "부산", "경주", "제주도")
-        check_in: 체크인 날짜 (YYYY-MM-DD 형식)
-        check_out: 체크아웃 날짜 (YYYY-MM-DD 형식)
-        guests: 투숙 인원 (기본값: 2명)
-        min_price: 최소 가격 (선택사항)
-        max_price: 최대 가격 (선택사항)
+        check_in: 체크인 날짜 (선택사항, 현재 pgvector 검색 필터에는 사용하지 않음)
+        check_out: 체크아웃 날짜 (선택사항, 현재 pgvector 검색 필터에는 사용하지 않음)
+        guests: 투숙 인원 (선택사항, 현재 pgvector 검색 필터에는 사용하지 않음)
+        min_price: 최소 가격 (선택사항, 현재 pgvector 검색 필터에는 사용하지 않음)
+        max_price: 최대 가격 (선택사항, 현재 pgvector 검색 필터에는 사용하지 않음)
         accommodation_type: 숙소 타입 (선택사항: "호텔", "게스트하우스", "리조트", "펜션")
     
     Returns:
@@ -54,7 +54,7 @@ def get_accommodation_search(
     query_parts = [location]
     if accommodation_type:
         query_parts.append(accommodation_type)
-    query_parts.append(f"{guests}명 숙소")
+    query_parts.append("숙소")
     results, error = search_accommodations(" ".join(query_parts), limit=5)
     if error:
         return error
@@ -62,10 +62,10 @@ def get_accommodation_search(
         return f"'{location}' 지역에서 검색된 숙소가 없습니다. 다른 지역을 검색해보세요."
 
     result = f"🏨 {location} 지역 숙소 검색 결과\n"
-    result += f"📅 체크인: {check_in} | 체크아웃: {check_out}\n"
-    result += f"👥 인원: {guests}명\n\n"
-    if min_price or max_price:
-        result += "※ pgvector 숙소 데이터에 가격 필드가 없으면 가격 조건은 적용되지 않을 수 있습니다.\n\n"
+    if check_in or check_out or guests or min_price or max_price:
+        result += "※ 현재 pgvector 숙소 데이터는 체크인/체크아웃, 인원수, 가격 조건으로 필터링하지 않습니다.\n\n"
+    else:
+        result += "\n"
 
     for idx, hit in enumerate(results, 1):
         result += format_accommodation_hit(idx, hit)
@@ -78,11 +78,11 @@ agent = create_react_agent(
     model=llm,
     tools=[get_accommodation_search],
     prompt="""당신은 숙박 추천 전문 어시스턴트입니다.
-    사용자가 숙소를 검색하고 추천해주길 원하면 get_accommodation_search 도구를 사용하세요.
+    사용자가 숙소를 검색, 추천하거나 위치/주소/상세 정보를 물으면 get_accommodation_search 도구를 사용하세요.
     
     중요:
-    - 사용자가 체크인/체크아웃 날짜를 명시하지 않으면, 날짜 없이 바로 get_accommodation_search을 호출하세요.
-    - 사용자가 인원수를 명시하지 않으면, 기본값(2명)으로 get_accommodation_search을 호출하세요.
+    - 현재 pgvector 숙소 데이터는 체크인/체크아웃, 인원수, 가격, 실시간 객실 재고를 의미 있게 필터링하지 않습니다.
+    - 날짜와 인원수를 물어봐도 가능 여부를 단정하지 말고, 숙소 검색 결과 중심으로 답변하세요.
     - 불필요한 추가 정보를 요청하지 말고, 바로 추천해주세요.
     - 추천해주는 숙소는 최소 2개 이상 최대 5개까지만 추천해주세요.""",
 )

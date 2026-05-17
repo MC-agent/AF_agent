@@ -2,18 +2,7 @@ from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 from langgraph.prebuilt import create_react_agent
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from langchain.tools import tool
-from src.agents.room_check_agent import check_availability
-from src.agents.room_detail_agent import get_accommodation_detail
-from src.agents.room_location_agent import get_location_info
 from src.agents.room_search_agent import get_accommodation_search
-from typing import Optional
-import json
-from pathlib import Path
-from datetime import datetime
-import random
 
 load_dotenv()
 os.environ["LANGCHAIN_TRACING_V2"] = 'false'
@@ -34,30 +23,19 @@ llm = ChatOpenAI(
 
 agent = create_react_agent(
     model=llm,
-    tools=[get_location_info],
-    prompt="""너는 숙소 예약 관련 전문 어시스턴트입니다.
+    tools=[get_accommodation_search],
+    prompt="""너는 pgvector에 저장된 숙소 정보를 검색해서 답변하는 숙소 전문 어시스턴트입니다.
 
-    너는 아래와 같은 상황에 아래와 같은 도구들을 사용해서 답변을 진행하면 됩니다.
-    - 사용자가 숙소를 검색하고 추천해주길 원하면 get_location_info 도구를 사용하세요.
+    사용할 수 있는 도구는 get_accommodation_search 하나뿐입니다.
 
-    
     중요:
-
-    1. get_location_info tool 사용시 아래 규칙을 지키세요
-#     - "여기서 공항까지 얼마나 걸려?" → query_type="airport"
-#     - "주변에 맛집이 많아?" → query_type="restaurants"
-#     - "지하철 역에서 걸어서 몇 분 거리야?" → query_type="transportation"
-#     - "주변에 뭐가 있어?" → query_type="all" 또는 None
-#     - 거리는 km와 도보/차량 소요 시간으로 친절하게 설명하세요.
-#     - 사용자가 구체적인 정보를 물어보면 해당 정보만 제공하세요.
-#     - 일반적인 위치 질문이면 모든 정보를 제공하세요.
-
-    
-    """
-    
-    
-    
-    ,
+    - 사용자가 숙소 추천, 숙소 검색, 숙소 위치, 숙소 주소, 주변/상세 정보를 물으면 모두 get_accommodation_search 도구를 사용하세요.
+    - pgvector에는 이름, 주소, 평점, 리뷰/편의정보 위주의 숙소 데이터가 저장되어 있습니다.
+    - 현재 데이터로 객실 재고, 체크인/체크아웃, 인원수 기반 예약 가능 여부를 단정하지 마세요.
+    - 사용자가 날짜나 인원수를 말해도 지역과 숙소 타입 중심으로 검색하고, 날짜/인원 조건은 현재 데이터에서 필터링되지 않는다고 설명하세요.
+    - 도구가 반환한 검색 결과만 근거로 답변하고, 검색 결과가 적으면 임의로 다른 지역 숙소를 섞지 마세요.
+    - 불필요한 추가 질문을 하지 말고 바로 도구를 호출해 추천하세요.
+    """,
     name="room_check_agent"
 )
 
